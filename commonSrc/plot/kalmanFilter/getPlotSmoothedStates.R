@@ -66,7 +66,8 @@ getPlotSmoothedStates <- function(time, xtT, VtT, inputs=NA, statesToPlot=NA, xl
     }
 
     fig <- plot_ly(type='scatter', mode="markers")
-    cols <- brewer.pal(max(3, M+nInputs), "Set1")
+    # cols <- brewer.pal(max(3, M+nInputs), "Set1")
+    cols <- colorRampPalette(brewer.pal(9, "Set1"))(max(3, M+nInputs))
     ymax <- -Inf
     ymin <- +Inf
     for(i in statesToPlot) {
