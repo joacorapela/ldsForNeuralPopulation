@@ -1,0 +1,15 @@
+.RData
+.Rhistory
+*.swp
+*.Rout
+*~
+slurm-*
+.nfs*
+toRsync*
+fromRsync*
+todo.txt
+docs/source/*.bak
+scripts/results/
+scripts/data/
+scripts/figures/
+scripts/notes/
