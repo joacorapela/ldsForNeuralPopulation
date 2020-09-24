@@ -57,7 +57,8 @@ getPlotOneStepAheadForecasts <- function(time, obs, ytt1, Wtt1, obsToPlot=NA, in
     }
 
     fig <- plot_ly(type='scatter', mode="markers")
-    cols <- brewer.pal(max(3, P), "Set1")
+    # cols <- brewer.pal(max(3, P), "Set1")
+    cols <- colorRampPalette(brewer.pal(9, "Set1"))(max(3, P))
     ymax <- -Inf
     ymin <- +Inf
     for(i in obsToPlot) {
