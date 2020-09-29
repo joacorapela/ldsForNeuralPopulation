@@ -93,6 +93,7 @@ processAll <- function() {
         }
         if(initialCondMethod=="FA") {
             dataForFA <- t(as.matrix(tSpikeRates))
+            controlFA <- list(trace=TRUE, nstart=5)
             initialConds <- estimateKFInitialCondFA(z=dataForFA, nFactors=stateDim, control=controlFA)
             B0 <- matrix(as.vector(initialConds$B), ncol=1)
             Z0 <- matrix(as.vector(initialConds$Z), ncol=1)
@@ -112,12 +113,11 @@ processAll <- function() {
         kem <- fit_MARSS(observations=tSpikeRates, inits=inits, stateDim=stateDim[i], stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
         }
         kem <- MARSSaic(kem)
-        logMessage <- sprintf("%d: number of latents=%d, state input memory=%f sec, observation input memory=%f sec, init=%s: logLik=%f, AIC=%f, AICc=%f", estNumber, stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], initialCondMethod, kem$logLik, kem$AIC, kem$AICc)
-        writeLines(text=logMessage, con=modelsLogFilename)
+        logMessage <- sprintf("%d: number of latents=%d, state input memory=%f sec, observation input memory=%f sec, init=%s: logLik=%f, AIC=%f, AICc=%f\n\n", estNumber, stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], initialCondMethod, kem$logLik, kem$AIC, kem$AICc)
         show(logMessage)
+        cat(logMessage, file=modelsLogFilename, append=TRUE)
         metaData[["estimation_summary"]] <- list(logLik=kem$logLik, AIC=kem$AIC, AICc=kem$AICc)
         write.ini(x=metaData, filepath=estMetaDataFilename)
-
         #
         estResFilename <- sprintf(estResFilenamePattern, estNumber)
         estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMem=stateInputMemorySecs[i], obsInputMem=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
