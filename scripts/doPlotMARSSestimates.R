@@ -14,7 +14,7 @@ source("../commonSrc/plot/kalmanFilter/getPlotPercentageExplainedVar.R")
 source("../commonSrc/plot/kalmanFilter/getPlotLogLik.R")
 
 processAll <- function() {
-    estNumber <- 92275409
+    estNumber <- 30249386
     estMetaDataFilenamePattern <- "results/%08d_estimation.ini"
     estConfigFilenamePattern <- "data/%08d_estimation.ini"
     figFilenamePattern <- "figures/%08d_%s.%s"
