@@ -8,7 +8,7 @@ source("../commonSrc/stats/kalmanFilter/fit_FA_MARSS.R")
 source("../commonSrc/stats/kalmanFilter/create_FA_MARSS.R")
 
 processAll <- function() {
-    estConfigNumber <- 1
+    estConfigNumber <- 2
     estConfigFilenamePattern <- "data/%08d_estimation.ini"
 
     estConfigFilename <- sprintf(estConfigFilenamePattern, estConfigNumber)
@@ -81,10 +81,13 @@ processAll <- function() {
         }
         kem <- fit_FA_MARSS(observations=tSpikeRates, stateDim=stateDim[i], stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
         kem <- MARSSaic(kem)
-        show(sprintf("number of latents=%d, state input memory=%f sec, observation input memory=%f sec: logLik=%f, AIC=%f, AICc=%f", stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], kem$logLik, kem$AIC, kem$AICc))
+        show(sprintf("%d: number of latents=%d, state input memory=%f sec, observation input memory=%f sec: logLik=%f, AIC=%f, AICc=%f", estNumber, stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], kem$logLik, kem$AIC, kem$AICc))
+        metaData[["estimation_summary"]] <- list(logLik=kem$logLik, AIC=kem$AIC, AICc=kem$AICc)
+        write.ini(x=metaData, filepath=estMetaDataFilename)
+
         #
         estResFilename <- sprintf(estResFilenamePattern, estNumber)
-        estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMem=stateInputMemorySecs[i], obsInputMem=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
+        estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMemSecs=stateInputMemorySecs[i], obsInputMemSecs=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
         save(estRes, file=estResFilename)
     }
 }
