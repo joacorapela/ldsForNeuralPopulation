@@ -16,8 +16,8 @@ processAll <- function() {
         make_option(c("-o", "--obsInputMemorySecs"), type="double", default=0.6, help="Observations input memory (sec)"),
         make_option(c("-i", "--initialCondMethod"), type="character", default="FA", help="Initial conditions method (FA: factor analysis; PPCA: probabilisitc PCA")
     )
-    parser <- OptionParser(usage = "%prog [options] configFilename", option_list=option_list)
-    parseRes <- parse_args(parser, positional_arguments=1)
+    parser <- OptionParser(usage = "%prog [options] configFilename modelsLogFilename", option_list=option_list)
+    parseRes <- parse_args(parser, positional_arguments=2)
     arguments <- parseRes$args
     options <- parseRes$options
 
@@ -27,6 +27,7 @@ processAll <- function() {
     initialCondMethod <- options$initialCondMethod
 
     estConfigFilename <- arguments[[1]]
+    modelsLogFilename <- arguments[[2]]
     estConfig <- read.ini(estConfigFilename)
 
     region <- estConfig$control_variables$region
@@ -47,7 +48,6 @@ processAll <- function() {
     dataFilename <-  estConfig$filenames$dataFilename
     estMetaDataFilenamePattern <- estConfig$filenames$estMetaDataFilenamePattern
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
-    modelsLogFilename <- estConfig$filenames$modelsLogFilename
 
     stopifnot(length(stateDim)==length(stateInputMemorySecs) & length(stateInputMemorySecs)==length(obsInputMemorySecs))
     #
@@ -93,6 +93,7 @@ processAll <- function() {
         }
         if(initialCondMethod=="FA") {
             dataForFA <- t(as.matrix(tSpikeRates))
+            controlFA <- list(trace=TRUE, nstart=5)
             initialConds <- estimateKFInitialCondFA(z=dataForFA, nFactors=stateDim, control=controlFA)
             B0 <- matrix(as.vector(initialConds$B), ncol=1)
             Z0 <- matrix(as.vector(initialConds$Z), ncol=1)
@@ -112,12 +113,11 @@ processAll <- function() {
         kem <- fit_MARSS(observations=tSpikeRates, inits=inits, stateDim=stateDim[i], stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
         }
         kem <- MARSSaic(kem)
-        logMessage <- sprintf("%d: number of latents=%d, state input memory=%f sec, observation input memory=%f sec, init=%s: logLik=%f, AIC=%f, AICc=%f", estNumber, stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], initialCondMethod, kem$logLik, kem$AIC, kem$AICc)
-        writeLines(text=logMessage, con=modelsLogFilename)
+        logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f\n", estNumber, stateDim[i], stateInputMemorySecs[i], obsInputMemorySecs[i], initialCondMethod, kem$logLik, kem$AIC, kem$AICc)
         show(logMessage)
+        cat(logMessage, file=modelsLogFilename, append=TRUE)
         metaData[["estimation_summary"]] <- list(logLik=kem$logLik, AIC=kem$AIC, AICc=kem$AICc)
         write.ini(x=metaData, filepath=estMetaDataFilename)
-
         #
         estResFilename <- sprintf(estResFilenamePattern, estNumber)
         estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMem=stateInputMemorySecs[i], obsInputMem=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)

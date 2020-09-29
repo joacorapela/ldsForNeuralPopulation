@@ -11,13 +11,14 @@
 echo "Starting task " $SLURM_ARRAY_TASK_ID
 
 set tasksFile='data/tasks.txt'
+set configFilename='data/00000003_estimation.ini'
 
 set stateDim=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $1}' $tasksFile`)
 set stateInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $2}' $tasksFile`)
 set obsInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $3}' $tasksFile`)
 set initialCondMethod=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $4}' $tasksFile`)
 
-echo Rscript $stateDim $stateInputMemorySecs $obsInputMemorySecs $initialCondMethod
+echo Rscript --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod $configFilename
 
 echo "Done with task " $SLURM_ARRAY_TASK_ID
 
