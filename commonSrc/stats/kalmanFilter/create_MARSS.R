@@ -1,4 +1,4 @@
-create_MARSS <- function(observations, inits, stateDim, stateInputs, stateOffsetType, stateCovType, obsInputs, obsOffsetType, obsCovType, initialStateMeanType, initialStateCovType, maxIter, kfFunc="MARSSkfas", silentLevel=2, controlFA=list(trace=TRUE, nstart=5), controlMARSS=list(trace=1, safe=FALSE), silentMARSS=2) {
+create_MARSS <- function(observations, inits, stateDim, stateInputs, stateOffsetType, stateCovType, obsInputs, obsOffsetType, obsCovType, initialStateMeanType, initialStateCovType, maxIter, kfFunc="MARSSkfas", silentLevel=2, controlMARSS=list(trace=1, safe=FALSE), silentMARSS=2) {
     # observations \in obsDim x nObs
     obsDim <- nrow(observations)
     nObs <- ncol(observations)
