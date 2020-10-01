@@ -120,7 +120,7 @@ processAll <- function() {
         write.ini(x=metaData, filepath=estMetaDataFilename)
         #
         estResFilename <- sprintf(estResFilenamePattern, estNumber)
-        estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMem=stateInputMemorySecs[i], obsInputMem=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
+        estRes <- list(kem=kem, stateDim=stateDim[i], stateInputMemorySecs=stateInputMemorySecs[i], obsInputMemorySecs=obsInputMemorySecs[i], tSpikeRates=tSpikeRates, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
         save(estRes, file=estResFilename)
     }
 }
