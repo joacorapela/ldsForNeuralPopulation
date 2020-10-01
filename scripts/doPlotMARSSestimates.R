@@ -21,9 +21,7 @@ processAll <- function() {
 
     estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, estNumber)
     estMetaData <- read.ini(filepath=estMetaDataFilename)
-    estConfigNumber <- as.integer(estMetaData$estimation_config_info$estConfigNumber)
-
-    estConfigFilename <- sprintf(estConfigFilenamePattern, estConfigNumber)
+    estConfigFilename <- estMetaData$estimation_config_info$estConfigFilename
     estConfig <- read.ini(estConfigFilename)
     # obsInputMemorySecs <- as.double(estConfig$inputs$obsInputMemorySecs)
     # stateInputMemorySecs <- as.double(estConfig$inputs$stateInputMemorySecs)
@@ -67,7 +65,7 @@ processAll <- function() {
     show("Plotting B")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "B", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "B", "html")
-    fig <- getPlotTrueInitialAndEstimatedMatrices(initial=initialConds$B, estimated=matrix(coef(kem)$B, nrow=stateDim))
+    fig <- getPlotTrueInitialAndEstimatedMatrices(estimated=matrix(coef(kem)$B, nrow=stateDim))
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     print(fig)
@@ -162,7 +160,7 @@ processAll <- function() {
     show("Plotting Z")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "Z", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "Z", "html")
-    fig <- getPlotTrueInitialAndEstimatedMatrices(initial=initialConds$Z, estimated=matrix(coef(kem)$Z, nrow=dimObs))
+    fig <- getPlotTrueInitialAndEstimatedMatrices(estimated=matrix(coef(kem)$Z, nrow=dimObs))
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     print(fig)
@@ -229,8 +227,6 @@ processAll <- function() {
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     print(fig)
-
-browser()
 
     if(kem$call$model$R=="diagonal and unequal") {
         R <- diag(coef(kem)$R)
