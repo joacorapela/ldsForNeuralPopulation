@@ -1,5 +1,5 @@
 require(R.matlab)
-require(plotly)                                                    
+require(plotly)
 
 getRasterPlot <- function(spikesTimes, stimOnTimeStamps, stimOffTimeStamps, goTrialIndices, nogoTrialIndices, laserOnsets, laserDuration, sRate, startTime, endTime, markerColor="rgb(128,128,128)", goStimColor="rgb(0,255,0)", nogoStimColor="rgb(255,0,0)", laserColor="rgb(0,0,255)", markerSize=3, stimOpacity=0.3, laserOpacity=0.3) {
 
@@ -9,8 +9,8 @@ getRasterPlot <- function(spikesTimes, stimOnTimeStamps, stimOffTimeStamps, goTr
             x0 <- onsets[i]
             x1 <- onsets[i]+durations[i]
             recs[[i]] <- list(type="rect",
-                              fillcolor=color, 
-                              line=list(color=color), 
+                              fillcolor=color,
+                              line=list(color=color),
                               opacity=opacity,
                               x0=x0, x1=x1, xref="x",
                               y0=ymin, y1=ymax, yref="y")
