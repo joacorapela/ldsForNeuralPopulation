@@ -1,4 +1,4 @@
-fit_MARSS <- function(observations, inits, stateDim, stateInputs, stateOffsetType, stateCovType, obsInputs, obsOffsetType, obsCovType, initialStateMeanType, initialStateCovType, maxIter, kfFunc, silentLevel=2, controlFA=list(trace=TRUE, nstart=5)) {
+fit_MARSS <- function(observations, inits, stateDim, stateInputs, stateOffsetType, stateCovType, obsInputs, obsOffsetType, obsCovType, initialStateMeanType, initialStateCovType, maxIter, kfFunc, silentLevel=2) {
     MLEobj <- create_MARSS(observations=observations,
                            inits=inits,
                            stateDim=stateDim,
@@ -12,8 +12,7 @@ fit_MARSS <- function(observations, inits, stateDim, stateInputs, stateOffsetTyp
                            initialStateCovType=initialStateCovType,
                            maxIter=maxIter,
                            kfFunc=kfFunc,
-                           silentLevel=silentLevel,
-                           controlFA=controlFA)
+                           silentLevel=silentLevel)
     kem <- MARSSkem(MLEobj=MLEobj)
     return(kem)
 }
