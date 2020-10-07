@@ -3,13 +3,14 @@ require(MASS)
 require(MARSS)
 require(ini)
 require(optparse)
-source("../projectSrc/utils/kalmanFilter/buildGoNogoLaserAndInteractionsInputs.R")
+source("../projectSrc/utils/kalmanFilter/buildGoNogoVisualAndLaserInputs.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondFA.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
 source("../commonSrc/stats/kalmanFilter/fit_MARSS.R")
 source("../commonSrc/stats/kalmanFilter/create_MARSS.R")
 
 processAll <- function() {
+# if(FALSE) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
         make_option(c("-s", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
@@ -35,14 +36,18 @@ processAll <- function() {
     estConfigFilename <- arguments[[1]]
     modelsLogFilename <- arguments[[2]]
 
-#     # begin uncomment to debug
-#     stateDim <- 6
-#     stateInputMemorySecs <- 0.6
-#     obsInputMemorySecs <- 0.6
-#     initialCondMethod <- "FA"
-#     estConfigFilename <- "data/v1Shaft1_estimation.ini"
-#     modelsLogFilename <- "log/v1Shaft1.csv"
-#     # end uncomment to debug
+# }
+
+if(FALSE) {
+    # begin uncomment to debug
+    stateDim <- 6
+    stateInputMemorySecs <- 0.6
+    obsInputMemorySecs <- 0.6
+    initialCondMethod <- "FA"
+    estConfigFilename <- "data/v1Shaft1_estimation.ini"
+    modelsLogFilename <- "log/v1Shaft1.csv"
+    # end uncomment to debug
+}
 
     estConfig <- read.ini(estConfigFilename)
 
@@ -94,12 +99,12 @@ processAll <- function() {
 
     startTime <- proc.time()[3]
     if(!is.nan(stateInputMemorySecs)) {
-        stateInputs <- buildGoNogoLaserAndInteractionsInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
+        stateInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
     } else {
         stateInputs <- NA
     }
     if(!is.nan(obsInputMemorySecs)) {
-        obsInputs <- buildGoNogoLaserAndInteractionsInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
+        obsInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
     } else {
         obsInputs <- NA
     }
