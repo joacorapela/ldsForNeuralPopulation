@@ -1,24 +1,14 @@
 #!/bin/csh
 
-#SBATCH --job-name=doAnalyze_MARSS
-#SBATCH --output=doAnalyz_MARSS_%A_%a.out
-#SBATCH --error=doAnalyz_MARSS_%A_%a.err
-#SBATCH --array=1-4
-#SBATCH --time=00:01:00
-#SBATCH --mem=4G
-
 # Print the task id.
-echo "Starting task " $SLURM_ARRAY_TASK_ID
+echo "Starting task " $SLURM_ARRAY_TASK_ID " on " $SLURMD_NODENAME
 
-set tasksFile='data/tasks.txt'
-set configFilename='data/00000003_estimation.ini'
+set stateDim=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $1}' $modelSelectionFile`)
+set stateInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $2}' $modelSelectionFile`)
+set obsInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $3}' $modelSelectionFile`)
+set initialCondMethod=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $4}' $modelSelectionFile`)
 
-set stateDim=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $1}' $tasksFile`)
-set stateInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $2}' $tasksFile`)
-set obsInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $3}' $tasksFile`)
-set initialCondMethod=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $4}' $tasksFile`)
+Rscript doAnalyze_MARSS_batch.R --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod $configFilename $modelsLogFilename
 
-echo Rscript --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod $configFilename
-
-echo "Done with task " $SLURM_ARRAY_TASK_ID
+echo "Done with task " $SLURM_ARRAY_TASK_ID " on " $SLURMD_NODENAME
 
