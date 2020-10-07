@@ -21,16 +21,16 @@ getBinnedStimulus <- function(stimOnSamples, stimOffSamples, breaks) {
 }
 
 processAll <- function() {
-    parser <- OptionParser(usage = "%prog configFilename", option_list=option_list)
+    parser <- OptionParser(usage = "%prog configFilename")
     parseRes <- parse_args(parser, positional_arguments=1)
     arguments <- parseRes$args
     configFilename <- arguments[[1]]
 
     config <- read.ini(configFilename)
 
-    sRate <- config$config_params$sRate
-    binSizeSecs <- config$config_params$sRate
-    laserDuration <- config$config_params$laserDuration
+    sRate <- as.numeric(config$config_params$sRate)
+    binSizeSecs <- as.numeric(config$config_params$binSizeSecs)
+    laserDuration <- as.numeric(config$config_params$laserDuration)
     matlabDataFilename <- config$filenames$matlabDataFilename
     saveFilename <- config$filenames$saveFilename
 
@@ -96,4 +96,4 @@ processAll <- function() {
 }
 
 processAll()
-rm(processAll)
+# rm(processAll)
