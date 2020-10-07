@@ -4,12 +4,16 @@
 
 1. `git clone https://github.com/joacorapela/ldsForNeuralPopulation`
 
-2. `conda env create -f environment.yml`
+2. `cd ldsForNeuralPopulation`
+
+3. `conda env create -f environment.yml`
+
+4. `conda activate envLDSneuralPopulation`
 
 ## Data preprocessing
 
-1. Save Matlab data in version 6 format using scripts/doSaveDataSubset.m (e.g.,
-   save this file in results/matlabData_V6.mat)
+1. Save Matlab data in version 6 format m (e.g., save this file in
+   results/matlabData_V6.mat)
 
 2. Bin time series
 
