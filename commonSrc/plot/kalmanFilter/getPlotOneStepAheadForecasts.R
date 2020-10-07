@@ -1,4 +1,4 @@
-getPlotOneStepAheadForecasts <- function(time, obs, ytt1, Wtt1, obsInputMemorySamples, obsToPlot=NA, inputs=NA, xlab="Time (sec)", ylab="Square Root Firing Rate", goStimColor="green", nogoStimColor="red", laserStimColor="blue", stimOpacity=0.2) {
+getPlotOneStepAheadForecasts <- function(time, obs, ytt1, Wtt1, goStimOn, goStimOff, nogoStimOn, nogoStimOff, laserStimOn, laserStimOff, obsToPlot=NA, inputs=NA, xlab="Time (sec)", ylab="Square Root Spike Counts", goStimColor="green", nogoStimColor="red", laserStimColor="blue", stimOpacity=0.2) {
 
     P <- nrow(obs)
     N <- ncol(obs)
@@ -32,12 +32,9 @@ getPlotOneStepAheadForecasts <- function(time, obs, ytt1, Wtt1, obsInputMemorySa
         fig <- fig%>%add_trace(x=time, y=ytt1[i,]+1.96*stdOneStepAheadForecast[i,], mode="lines", line=list(color="rgba(0,0,0,0)"), name=sprintf("forecast[,%d]", i), showlegend=FALSE)
         fig <- fig%>%add_trace(x=time, y=ytt1[i,]-1.96*stdOneStepAheadForecast[i,], mode="lines", line=list(color="rgba(0,0,0,0)"), name=sprintf("forecast[,%d]", i), showlegend=FALSE, fill="tonexty", fillcolor=sprintf("rgba(%d,%d,%d,%f)", rgbValues[1,1], rgbValues[2,1], rgbValues[3,1], 0.2))
     }
-    if(!is.na(inputs[1])) {
-        stimRecs <- getStimRecs(time=time, inputs=inputs, inputMemorySamples=obsInputMemorySamples, ymin=ymin, ymax=ymax, goStimColor=goStimColor, nogoStimColor=nogoStimColor, laserStimColor=laserStimColor, stimOpacity=stimOpacity)
-        fig <- fig%>%layout(shapes=stimRecs, xaxis=list(title=xlab), yaxis=list(title=ylab))
-    } else {
-        fig <- fig%>%layout(xaxis=list(title=xlab), yaxis=list(title=ylab))
-    }
+    fig <- fig%>%layout(xaxis=list(title=xlab), yaxis=list(title=ylab))
+    stimRecs <- getStimRecs(goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, ymin=ymin, ymax=ymax, goStimColor=goStimColor, nogoStimColor=nogoStimColor, laserStimColor=laserStimColor, stimOpacity=stimOpacity)
+    fig <- fig%>%layout(shapes=stimRecs)
 
     return(fig)
 }
