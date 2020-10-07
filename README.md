@@ -2,7 +2,7 @@
 
 ## Installation
 
-1. git clone https://github.com/joacorapela/corticalCommunication.git
+1. git clone https://github.com/joacorapela/ldsForNeuralPopulation
 
 2. conda env create -f environment.yml
 
