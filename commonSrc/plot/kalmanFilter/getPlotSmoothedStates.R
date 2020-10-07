@@ -1,13 +1,7 @@
-getPlotSmoothedStates <- function(time, xtT, VtT, stateInputMemorySamples, inputs=NA, statesToPlot=NA, xlab="Time (sec)", ylab="p(x|y_1,...,yN)", goStimColor="green", nogoStimColor="red", laserStimColor="blue", stimOpacity=0.2) {
+getPlotSmoothedStates <- function(time, xtT, VtT, goStimOn, goStimOff, nogoStimOn, nogoStimOff, laserStimOn, laserStimOff, statesToPlot=NA, xlab="Time (sec)", ylab="Smoothed State", goStimColor="green", nogoStimColor="red", laserStimColor="blue", stimOpacity=0.2) {
 
     M <- nrow(xtT)
     N <- ncol(xtT)
-    if(!is.na(inputs[1])) {
-        nInputs <- nrow(inputs)
-
-    } else {
-        nInputs <- 0
-    }
     if(is.na(statesToPlot[1])) {
         statesToPlot <- 1:M
     }
@@ -19,7 +13,7 @@ getPlotSmoothedStates <- function(time, xtT, VtT, stateInputMemorySamples, input
 
     fig <- plot_ly(type='scatter', mode="markers")
     # cols <- brewer.pal(max(3, M+nInputs), "Set1")
-    cols <- colorRampPalette(brewer.pal(9, "Set1"))(max(3, M+nInputs))
+    cols <- colorRampPalette(brewer.pal(9, "Set1"))(max(3, M))
     ymax <- -Inf
     ymin <- +Inf
     for(i in statesToPlot) {
@@ -36,16 +30,8 @@ getPlotSmoothedStates <- function(time, xtT, VtT, stateInputMemorySamples, input
         fig <- fig%>%add_trace(x=time, y=cbLower, mode="lines", line=list(color="rgba(0,0,0,0)"), name=sprintf("state[,%d]", i), showlegend=FALSE, fill="tonexty", fillcolor=sprintf("rgba(%d,%d,%d,%f)", rgbValues[1,1], rgbValues[2,1], rgbValues[3,1], 0.2))
     }
     fig <- fig%>%layout(xaxis=list(title=xlab), yaxis=list(title=ylab))
-    if(!is.na(inputs[1])) {
-        stimRecs <- getStimRecs(time=time, inputs=inputs, inputMemorySamples=stateInputMemorySamples, ymin=ymin, ymax=ymax, goStimColor=goStimColor, nogoStimColor=nogoStimColor, laserStimColor=laserStimColor, stimOpacity=stimOpacity)
-        fig <- fig%>%layout(shapes=stimRecs)
-    }
-#     if(!is.na(inputs[1])) {
-#         for(i in 1:nrow(inputs)) {
-#             rgbValues <- col2rgb(cols[M+i])
-#             fig <- fig%>%add_trace(x=time, y=inputs[i,], mode="lines", name=sprintf("input%d", i), line=list(color=sprintf("rgba(%d,%d,%d,%f)", rgbValues[1,1], rgbValues[2,1], rgbValues[3,1], 1), dash="solid"))
-#         }
-#     }
+    stimRecs <- getStimRecs(goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, ymin=ymin, ymax=ymax, goStimColor=goStimColor, nogoStimColor=nogoStimColor, laserStimColor=laserStimColor, stimOpacity=stimOpacity)
+    fig <- fig%>%layout(shapes=stimRecs)
 
     return(fig)
 }
