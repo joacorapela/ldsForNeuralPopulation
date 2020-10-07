@@ -1,5 +1,6 @@
 require(R.matlab)
-require(plotly)                                                    
+require(ini)
+require(optparse)
 
 getSpikeCounts <- function(spikeSamples, breaks) {
     nUnits <- length(spikeSamples)
@@ -20,11 +21,18 @@ getBinnedStimulus <- function(stimOnSamples, stimOffSamples, breaks) {
 }
 
 processAll <- function() {
-    sRate <- 30000
-    binSizeSecs <- 0.1 # in sec
-    laserDuration <- .1
-    matlabDataFilename <- "../../data/task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_subset_V6.mat"
-    saveFilename <- "results/task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_timeSeries.RData"
+    parser <- OptionParser(usage = "%prog configFilename", option_list=option_list)
+    parseRes <- parse_args(parser, positional_arguments=1)
+    arguments <- parseRes$args
+    configFilename <- arguments[[1]]
+
+    config <- read.ini(configFilename)
+
+    sRate <- config$config_params$sRate
+    binSizeSecs <- config$config_params$sRate
+    laserDuration <- config$config_params$laserDuration
+    matlabDataFilename <- config$filenames$matlabDataFilename
+    saveFilename <- config$filenames$saveFilename
 
     loadRes <- readMat(matlabDataFilename)
 
