@@ -14,18 +14,23 @@ source("../commonSrc/plot/kalmanFilter/getPlotPercentageExplainedVar.R")
 source("../commonSrc/plot/kalmanFilter/getPlotLogLik.R")
 
 processAll <- function() {
-    estNumber <- 33778847 # v1Shaft1estMetaData
+    # estNumber <- 33778847 # v1Shaft1
+    # estNumber <- 25122025 # lmShaft1
+    # estNumber <- 91839089 # v1Shaft2
+    # estNumber <- 58551863 # lmShaft2
+    # estNumber <- 95544391 # lmShaft2 stim input bug fixed, but incorrect setup of states input matrix c
+    # estNumber <- 70878808 # v1Shaft1 stim input format changed
+    # estNumber <- 83838227 # v1Shaft2 stim input format changed
+    # estNumber <- 78086653 # lmShaft1 stim input format changed
+    estNumber <- 77993882 # lmShaft2 stim input format changed
     estMetaDataFilenamePattern <- "results/%08d_estimation.ini"
-    estConfigFilenamePattern <- "data/%08d_estimation.ini"
     figFilenamePattern <- "figures/%08d_%s.%s"
 
     estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, estNumber)
     estMetaData <- read.ini(filepath=estMetaDataFilename)
     estConfigFilename <- estMetaData$estimation_config_info$estConfigFilename
     estConfig <- read.ini(estConfigFilename)
-    # obsInputMemorySecs <- as.double(estConfig$inputs$obsInputMemorySecs)
-    # stateInputMemorySecs <- as.double(estConfig$inputs$stateInputMemorySecs)
-    # stateDim <- eval(parse(text=estConfig$control_variables$stateDim))
+    dataFilename <- estConfig$filenames$dataFilename
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
 
     estResFilename <- sprintf(estResFilenamePattern, estNumber)
@@ -43,15 +48,37 @@ processAll <- function() {
     obsInputMemorySamples <- obsInputMemorySecs*sRate
 
     kfRes <- MARSSkf(kem)
-#     kem0 <- kem
-#     kem0$par <- kem0$start
-#     kfRes0 <- MARSSkf(kem0)
 
     sqrtSpikeCounts <- estRes$sqrtSpikeCounts
     time <- estRes$startTime+(1:ncol(estRes$sqrtSpikeCounts))/estRes$sRate
     dimObs <- nrow(sqrtSpikeCounts)
     nObs <- ncol(sqrtSpikeCounts)
 
+    data <- get(load(dataFilename))
+    minTime <- min(time)
+    maxTime <- max(time)
+
+    goStimOn <- data$goStimOnSecs
+    goStimOff <- data$goStimOffSecs
+    toKeepIndices <- which(minTime<=goStimOn & goStimOff<=maxTime)
+    goStimOn <- goStimOn[toKeepIndices]
+    goStimOff <- goStimOff[toKeepIndices]
+
+    nogoStimOn <- data$nogoStimOnSecs
+    nogoStimOff <- data$nogoStimOffSecs
+    toKeepIndices <- which(minTime<=nogoStimOn & nogoStimOff<=maxTime)
+    nogoStimOn <- nogoStimOn[toKeepIndices]
+    nogoStimOff <- nogoStimOff[toKeepIndices]
+
+    laserStimOn <- data$laserStimOnSecs
+    laserStimOff <- data$laserStimOffSecs
+    toKeepIndices <- which(minTime<=laserStimOn & laserStimOff<=maxTime)
+    laserStimOn <- laserStimOn[toKeepIndices]
+    laserStimOff <- laserStimOff[toKeepIndices]
+
+browser()
+
+# if(FALSE) {
     show("Plotting logLik")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "html")
@@ -84,47 +111,43 @@ processAll <- function() {
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-    show("Plotting C")
     if(!is.nan(stateInputMemorySecs)) {
+        show("Plotting C")
         x <- (0:stateInputMemorySamples)/sRate
         CblockSize <- stateDim*(1+stateInputMemorySamples)
         Coffset <- 0
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Cgo", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Cgo", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim), estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
+        CVisualStimGo <- matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim)
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "CVisualStimGo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CVisualStimGo", "html")
+        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=CVisualStimGo, estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Coffset <- Coffset + CblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Cnogo", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Cnogo", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim), estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
+        CVisualStimNogo <- matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim)
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "CVisualStimNogo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CVisualStimNogo", "html")
+        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=CVisualStimNogo, estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Coffset <- Coffset + CblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Claser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Claser", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim), estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
+        CLaserStimGo <- matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim)
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "CLaserStimGo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CLaserStimGo", "html")
+        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=CLaserStimGo, estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Coffset <- Coffset + CblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "CgoLaser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CgoLaser", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim), estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
-        htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
-        orca(p=fig, file=pngFilename)
-        # print(fig)
-        Coffset <- Coffset + CblockSize
-        #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "CnogoLaser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CnogoLaser", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim), estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
+        CLaserStimNogo <- matrix(coef(kem)$C[Coffset+(1:CblockSize)], nrow=stateDim)
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "CLaserStimNogo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "CLaserStimNogo", "html")
+        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=CLaserStimNogo, estimatedLegendLabelPattern="state %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -171,46 +194,38 @@ processAll <- function() {
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-    show("Plotting D")
     if(!is.nan(obsInputMemorySecs)) {
+        show("Plotting D")
         x <- (0:obsInputMemorySamples)/sRate
         DblockSize <- dimObs*(1+obsInputMemorySamples)
         Doffset <- 0
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Dgo", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Dgo", "html")
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "DVisualStimGo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DVisualStimGo", "html")
         fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$D[Doffset+(1:DblockSize)], nrow=dimObs), estimatedLegendLabelPattern="observation %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Doffset <- Doffset + DblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Dnogo", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Dnogo", "html")
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "DVisualStimNogo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DVisualStimNogo", "html")
         fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$D[Doffset+(1:DblockSize)], nrow=dimObs), estimatedLegendLabelPattern="observation %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Doffset <- Doffset + DblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "Dlaser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "Dlaser", "html")
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "DLaserStimGo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DLaserStimGo", "html")
         fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$D[Doffset+(1:DblockSize)], nrow=dimObs), estimatedLegendLabelPattern="observation %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
         Doffset <- Doffset + DblockSize
         #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "DgoLaser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DgoLaser", "html")
-        fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$D[Doffset+(1:DblockSize)], nrow=dimObs), estimatedLegendLabelPattern="observation %d", xlab="Delay (sec)")
-        htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
-        orca(p=fig, file=pngFilename)
-        # print(fig)
-        Doffset <- Doffset + DblockSize
-        #
-        pngFilename <- sprintf(figFilenamePattern, estNumber, "DnogoLaser", "png")
-        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DnogoLaser", "html")
+        pngFilename <- sprintf(figFilenamePattern, estNumber, "DLaserStimNogo", "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, "DLaserStimNogo", "html")
         fig <- getPlotTrueInitialAndEstimatedMatrices(x=x, estimated=matrix(coef(kem)$D[Doffset+(1:DblockSize)], nrow=dimObs), estimatedLegendLabelPattern="observation %d", xlab="Delay (sec)")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
@@ -225,6 +240,8 @@ processAll <- function() {
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
+
+# }
 
     if(kem$call$model$R=="diagonal and unequal") {
         R <- diag(coef(kem)$R)
@@ -245,16 +262,16 @@ processAll <- function() {
     show("Plotting oneStepAheadForecasts")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "html")
-    fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, obsInputMemorySamples=obsInputMemorySamples, inputs=obsInputs)
+    fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-    show("Plotting oneStepAheadForecastsNeuron")
     for(i in 1:nrow(predStats$ytt1)) {
+        show(sprintf("Plotting oneStepAheadForecast for neuron %d", i))
         pngFilename <- sprintf(figFilenamePattern, estNumber, sprintf("oneStepAheadForecastsNeuron%d", i), "png")
         htmlFilename <- sprintf(figFilenamePattern, estNumber, sprintf("oneStepAheadForecastsNeuron%d", i), "html")
-        fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, obsToPlot=c(i), obsInputMemorySamples=obsInputMemorySamples, inputs=obsInputs)
+        fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, obsToPlot=c(i))
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -263,15 +280,17 @@ processAll <- function() {
     show("Plotting smoothedStates")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "html")
-    fig <- getPlotSmoothedStates(time=time, xtT=kfRes$xtT, VtT=kfRes$VtT, stateInputMemorySamples=stateInputMemorySamples, inputs=stateInputs)
+    fig <- getPlotSmoothedStates(time=time, xtT=kfRes$xtT, VtT=kfRes$VtT, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
 
+
     for(i in 1:nrow(kfRes$xtT)) {
+        show(sprintf("Plotting smoothedState %d", i))
         pngFilename <- sprintf(figFilenamePattern, estNumber, sprintf("smoothedState%d", i), "png")
         htmlFilename <- sprintf(figFilenamePattern, estNumber, sprintf("smoothedState%d", i), "html")
-        fig <- getPlotSmoothedStates(time=time, xtT=kfRes$xtT, VtT=kfRes$VtT, statesToPlot=c(i), stateInputMemorySamples=stateInputMemorySamples, inputs=stateInputs)
+        fig <- getPlotSmoothedStates(time=time, xtT=kfRes$xtT, VtT=kfRes$VtT, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, statesToPlot=c(i))
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
