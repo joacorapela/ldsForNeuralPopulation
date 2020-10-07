@@ -8,7 +8,7 @@
 #SBATCH --mem=4G
 
 # Print the task id.
-echo "Starting task " $SLURM_ARRAY_TASK_ID
+echo "Starting task " $SLURM_ARRAY_TASK_ID " on " $SLURMD_NODENAME
 
 set modelSelectionFile='data/lmShaft1_modelSelection.txt'
 set configFilename='data/lmShaft1_estimation.ini'
@@ -21,5 +21,5 @@ set initialCondMethod=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $4}' $
 
 Rscript doAnalyze_MARSS_batch.R --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod $configFilename $modelsLogFilename
 
-echo "Done with task " $SLURM_ARRAY_TASK_ID
+echo "Done with task " $SLURM_ARRAY_TASK_ID " on " $SLURMD_NODENAME
 
