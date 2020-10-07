@@ -1,7 +1,7 @@
 computeOneStepAheadObsPredStats <- function(xtt1, Vtt1, Z, a, D, R, obsInputs) {
     dimObs <- nrow(Z)
     nObs <- ncol(xtt1)
-    if(!is.nan(obsInputs[1])) {
+    if(!is.na(obsInputs[1])) {
         ytt1 <- Z%*%xtt1+a+D%*%obsInputs
     } else {
         ytt1 <- Z%*%xtt1+a
