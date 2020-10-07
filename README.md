@@ -19,7 +19,7 @@
 
 2. `cd scripts`
 
-3. bin time series
+3. Bin time series
 
     a. In data/binLDStimeSeries.ini configure the sample rate (sRate), bin size
 (binSizeSecs), laser duration (laserDuration), Matlab data version 6 filename
