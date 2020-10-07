@@ -53,7 +53,7 @@ the binned data (saveFilename),
 
 2. Create a file describing each model to estimate (e.g., data/viShaft1_modelsSelection.txt)
 
-3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables modelSelection?File and configFilename to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
+3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables modelSelectionFile and configFilename to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
 
 4. Run the Unix script file (e.g., `./doAnalyze_MARSS_v1Shaft1.csh`)
 
@@ -77,17 +77,17 @@ The Unix script file will submit in parallel as many jobs to the cluster as mode
 
     d. type `orca --help` and you should see something like:
 
-        Plotly's image-exporting utilities
+       Plotly's image-exporting utilities
 
-        Usage: orca [--version] [--help] <command> [<args>]
+       Usage: orca [--version] [--help] <command> [<args>]
 
-        Available commands:
-        - graph [or plotly-graph, plotly_graph]
-            Generates an image of plotly graph from inputted plotly.js JSON attributes.
-            For more info, run `orca graph --help`.
-        - serve [or server]
-            Boots up a server with one route per available export component
-            For more info, run `orca serve --help`.
+       Available commands:
+       - graph [or plotly-graph, plotly_graph]
+           Generates an image of plotly graph from inputted plotly.js JSON attributes.
+           For more info, run `orca graph --help`.
+       - serve [or server]
+           Boots up a server with one route per available export component
+           For more info, run `orca serve --help`.
 
 
 3. `Rscript doPlotMARSSestimates.R estNumber`
