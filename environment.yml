@@ -1,4 +1,4 @@
-name: r_env2
+name: envLDSneuralPopulation
 channels:
   - plotly
   - conda-forge
