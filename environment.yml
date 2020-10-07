@@ -62,6 +62,7 @@ dependencies:
   - make=4.3=h516909a_0
   - ncurses=6.2=he1b5a44_1
   - openssl=1.1.1h=h516909a_0
+  - pandoc=2.10.1=h516909a_0
   - pango=1.42.4=h7062337_4
   - pcre=8.44=he1b5a44_0
   - pcre2=10.35=h2f06484_0
@@ -180,4 +181,4 @@ dependencies:
     - requests==2.24.0
     - urllib3==1.25.10
     - werkzeug==1.0.1
-prefix: /nfs/ghome/live/rapela/anaconda3/envs/r_env2
+prefix: /nfs/ghome/live/rapela/anaconda3/envs/envLDSneuralPopulation
