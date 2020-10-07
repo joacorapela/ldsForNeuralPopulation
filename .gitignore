@@ -10,10 +10,12 @@ fromRsync*
 todo.txt
 docs/source/*.bak
 scripts/results/
-scripts/data/
+scripts/data/*
+!scripts/data/v1Shaft1_estimation.ini
+!scripts/data/v1Shaft1_modelSelection.txt
+scripts/log/
 scripts/figures/
 scripts/notes/
 scripts/old/
 scripts/lessons/
-scripts/log/
 scripts/slurmOutputs/
