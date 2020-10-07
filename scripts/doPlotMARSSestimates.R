@@ -14,17 +14,18 @@ source("../commonSrc/plot/kalmanFilter/getPlotPercentageExplainedVar.R")
 source("../commonSrc/plot/kalmanFilter/getPlotLogLik.R")
 
 processAll <- function() {
-    # estNumber <- 33778847 # v1Shaft1
-    # estNumber <- 25122025 # lmShaft1
-    # estNumber <- 91839089 # v1Shaft2
-    # estNumber <- 58551863 # lmShaft2
-    # estNumber <- 95544391 # lmShaft2 stim input bug fixed, but incorrect setup of states input matrix c
-    # estNumber <- 70878808 # v1Shaft1 stim input format changed
-    # estNumber <- 83838227 # v1Shaft2 stim input format changed
-    # estNumber <- 78086653 # lmShaft1 stim input format changed
-    estNumber <- 77993882 # lmShaft2 stim input format changed
-    estMetaDataFilenamePattern <- "results/%08d_estimation.ini"
-    figFilenamePattern <- "figures/%08d_%s.%s"
+    option_list <- list( 
+        make_option(c("-m", "--estMetaDataFilenamePattern"), type="character", default="results/%08d_estimation.ini", help="Estimation metadata filename pattern"),
+        make_option(c("-f", "--figFilenamePattern"), type="character", default="figures/%08d_%s.%s", help="Figure filename pattern"),
+    )
+    parser <- OptionParser(usage = "%prog [options] estNumber", option_list=option_list)
+    parseRes <- parse_args(parser, positional_arguments=1)
+    options <- parseRes$options
+    arguments <- parseRes$args
+
+    estNumber <- as.numeric(arguments[1])
+    estMetaDataFilenamePattern <- options$estMetaDataFilenamePattern
+    figFilenamePattern <- options$figFilenamePattern
 
     estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, estNumber)
     estMetaData <- read.ini(filepath=estMetaDataFilename)
@@ -75,8 +76,6 @@ processAll <- function() {
     toKeepIndices <- which(minTime<=laserStimOn & laserStimOff<=maxTime)
     laserStimOn <- laserStimOn[toKeepIndices]
     laserStimOff <- laserStimOff[toKeepIndices]
-
-browser()
 
 # if(FALSE) {
     show("Plotting logLik")
