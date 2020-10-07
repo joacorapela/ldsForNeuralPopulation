@@ -10,12 +10,15 @@ fromRsync*
 todo.txt
 docs/source/*.bak
 scripts/results/
+!scripts/results/.gitkeep
 scripts/data/*
 !scripts/data/binLDStimeSeries.ini
 !scripts/data/v1Shaft1_estimation.ini
 !scripts/data/v1Shaft1_modelSelection.txt
 scripts/log/
+!scripts/log/.gitkeep
 scripts/figures/
+!scripts/figures/.gitkeep
 scripts/notes/
 scripts/old/
 scripts/lessons/
