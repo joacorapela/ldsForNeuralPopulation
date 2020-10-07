@@ -61,7 +61,38 @@ The Unix script file will submit in parallel as many jobs to the cluster as mode
 
 ## Plotting model parameters
 
-1. `Rscript doPlotMARSSestimates.R estNumber`
+1. Configure orca:
 
-    where estNumber is the random number assigned to the model you want to plot. This script will generate a large number of static png files and dynamic html files.
+    a. `sudo apt-get install xvfb`
+
+    b. type `which orca`
+
+    c. edit the file resulting from step 2 (e.g., vi /nfs/ghome/live/rapela/anaconda3/envs/r_env3/bin/orca) and replace the line:
+
+        exec /nfs/ghome/live/rapela/anaconda3/envs/r_env3/lib/orca_app/orca --no-sandbox "$@"
+
+        by:
+
+        xvfb-run -a  /nfs/ghome/live/rapela/anaconda3/envs/r_env3/lib/orca_app/orca "$@"                                                  
+
+    d. type `orca --help` and you should see something like:
+
+        Plotly's image-exporting utilities
+
+        Usage: orca [--version] [--help] <command> [<args>]
+
+        Available commands:
+        - graph [or plotly-graph, plotly_graph]
+            Generates an image of plotly graph from inputted plotly.js JSON attributes.
+            For more info, run `orca graph --help`.
+        - serve [or server]
+            Boots up a server with one route per available export component
+            For more info, run `orca serve --help`.
+
+
+3. `Rscript doPlotMARSSestimates.R estNumber`
+
+    where estNumber is the random number assigned to the model you want to plot (e.g., first column in log/v1Shaft1.log). 
+
+    This script will generate a large number of static png files and dynamic html files.
 
