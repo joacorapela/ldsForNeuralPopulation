@@ -1,6 +1,10 @@
-# Code for the analysis of neural population recordings with linear dynamical systems with inpunts
+# Code for fitting linear dynamical models with inputs to neural population recordings
 
 ## Installation
+
+1. git clone https://github.com/joacorapela/corticalCommunication.git
+
+2. conda env create -f environment.yml
 
 ## Data preprocessing
 
