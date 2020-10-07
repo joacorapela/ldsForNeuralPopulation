@@ -13,3 +13,7 @@ scripts/results/
 scripts/data/
 scripts/figures/
 scripts/notes/
+scripts/old/
+scripts/lessons/
+scripts/log/
+scripts/slurmOutputs/
