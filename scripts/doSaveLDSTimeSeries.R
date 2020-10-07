@@ -78,9 +78,10 @@ processAll <- function() {
     goStimBinned <- getBinnedStimulus(stimOnSamples=stimOnSamples[goTrialIndices], stimOffSamples=stimOffSamples[goTrialIndices], breaks=breaks)
     nogoStimBinned <- getBinnedStimulus(stimOnSamples=stimOnSamples[nogoTrialIndices], stimOffSamples=stimOffSamples[nogoTrialIndices], breaks=breaks)
     laserOnsetSamples <- stimOnSamples+round(laserDelays*sRate)
+    laserOnsetSamples <- laserOnsetSamples[which(!is.nan(laserOnsetSamples))]
     laserStimBinned <- getBinnedStimulus(stimOnSamples=laserOnsetSamples, stimOffSamples=laserOnsetSamples+round(laserDuration*sRate), breaks=breaks)
 
-    timeSeries <- list(sRate=1.0/binSizeSecs, breaks=breaks, v1Shaft1SpikeCounts=v1Shaft1SpikeCounts, v1Shaft2SpikeCounts=v1Shaft2SpikeCounts, lmShaft1SpikeCounts=lmShaft1SpikeCounts, lmShaft2SpikeCounts=lmShaft2SpikeCounts, goStim=goStimBinned, nogoStim=nogoStimBinned, laserStim=laserStimBinned)
+    timeSeries <- list(sRate=1.0/binSizeSecs, breaks=breaks, v1Shaft1SpikeCounts=v1Shaft1SpikeCounts, v1Shaft2SpikeCounts=v1Shaft2SpikeCounts, lmShaft1SpikeCounts=lmShaft1SpikeCounts, lmShaft2SpikeCounts=lmShaft2SpikeCounts, goStim=goStimBinned, nogoStim=nogoStimBinned, laserStim=laserStimBinned, goStimOnSecs=stimOnSamples[goTrialIndices]/sRate, goStimOffSecs=stimOffSamples[goTrialIndices]/sRate, nogoStimOnSecs=stimOnSamples[nogoTrialIndices]/sRate, nogoStimOffSecs=stimOffSamples[nogoTrialIndices]/sRate, laserStimOnSecs=laserOnsetSamples/sRate, laserStimOffSecs=laserOnsetSamples/sRate+laserDuration)
     save(timeSeries, file=saveFilename)
 
     browser()
