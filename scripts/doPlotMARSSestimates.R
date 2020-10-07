@@ -1,6 +1,7 @@
 
 require(MARSS)
 require(ini)
+require(optparse)
 require(plotly)
 source("../commonSrc/stats/utils/computePercentageExplainedVar.R")
 source("../commonSrc/stats/kalmanFilter/computeOneStepAheadObsPredStats.R")
@@ -16,7 +17,7 @@ source("../commonSrc/plot/kalmanFilter/getPlotLogLik.R")
 processAll <- function() {
     option_list <- list( 
         make_option(c("-m", "--estMetaDataFilenamePattern"), type="character", default="results/%08d_estimation.ini", help="Estimation metadata filename pattern"),
-        make_option(c("-f", "--figFilenamePattern"), type="character", default="figures/%08d_%s.%s", help="Figure filename pattern"),
+        make_option(c("-f", "--figFilenamePattern"), type="character", default="figures/%08d_%s.%s", help="Figure filename pattern")
     )
     parser <- OptionParser(usage = "%prog [options] estNumber", option_list=option_list)
     parseRes <- parse_args(parser, positional_arguments=1)
