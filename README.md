@@ -10,7 +10,7 @@
 
 4. `conda activate envLDSneuralPopulation`
 
-5. './installPackages.csh'
+5. `./installPackages.csh`
 
 ## Data preprocessing
 
