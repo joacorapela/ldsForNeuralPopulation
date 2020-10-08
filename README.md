@@ -14,7 +14,7 @@
 
 ## Data preprocessing
 
-1. Save Matlab data in version 6 format with specific a naming convention. See data/doSaveMatlabDataSubset.m (e.g., save this file in
+1. Save Matlab data in version 6 format with a specific naming convention. See data/doSaveMatlabDataSubset.m (e.g., save this file in
    scripts/results/matlabData_V6.mat)
 
 2. `cd scripts`
