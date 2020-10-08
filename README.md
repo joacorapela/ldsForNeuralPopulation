@@ -23,9 +23,8 @@
 
     a. In data/binLDStimeSeries.ini configure the sample rate (sRate), bin size
 (binSizeSecs), laser duration (laserDuration), Matlab data version 6 filename
-(generated in the previous step; e.g.,
-matlabDataFilename=results/matlabData_V6.mat) and filename that will contain
-the binned data (saveFilename),
+(generated in step 1; e.g., matlabDataFilename=results/matlabData_V6.mat) and
+filename that will contain the binned data (saveFilename),
 
     b. `Rscript doSaveBinnedLDSTimeSeries.R data/binLDStimeSeries.ini`
 
@@ -39,11 +38,11 @@ the binned data (saveFilename),
 
    For example: `Rscript doAnalyze_MARSS_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA data/v1Shaft1_estimation.ini log/v1Shaft1.log`
 
-   This script will print on the screen:
+   This script will print on the screen something like:
 
    [1] "70190160, 9, 0.000000, 0.600000, FA, -6564.091021, 15384.182043, 15442.239165, 633.024000\n"
 
-    indicating that the random number associated with the model is 70190160, stateDim=9, stateInputMemorySecs=0, obsInputMemorySecs=0.6, initialCondMethod=FA, log likelihood=-6564.091021, Akaike Information Criterion=15384.182043, Akaike Information Criterion corrected=15442.239165, elapsed time=633.024000 secs. 
+    indicating that the random number associated with the estimated model was 70190160, stateDim=9, stateInputMemorySecs=0, obsInputMemorySecs=0.6, initialCondMethod=FA, log likelihood=-6564.091021, Akaike Information Criterion=15384.182043, Akaike Information Criterion corrected=15442.239165, elapsed time=633.024000 secs. 
 
     This information is saved in log/v1Shaft1.log
 
@@ -53,7 +52,7 @@ the binned data (saveFilename),
 
 2. Create a file describing each model to estimate (e.g., data/viShaft1_modelsSelection.txt)
 
-3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables modelSelectionFile and configFilename to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
+3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables configFilename and modelSelectionFile to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
 
 4. Run the Unix script file (e.g., `./doAnalyze_MARSS_v1Shaft1.csh`)
 
@@ -71,7 +70,7 @@ The Unix script file will submit in parallel as many jobs to the cluster as mode
 
         exec /nfs/ghome/live/rapela/anaconda3/envs/r_env3/lib/orca_app/orca --no-sandbox "$@"
 
-        by:
+        with:
 
         xvfb-run -a  /nfs/ghome/live/rapela/anaconda3/envs/r_env3/lib/orca_app/orca "$@"                                                  
 
