@@ -74,6 +74,7 @@ if(FALSE) {
     sRate <- data$sRate
     analysisSamples <- (analysisStartTimeSecs*sRate)+(1:(analysisDurSecs*sRate))
     spikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
+browser()
     goStim <- data$goStim[analysisSamples]
     nogoStim <- data$nogoStim[analysisSamples]
     laserStim <- data$laserStim[analysisSamples]
@@ -130,7 +131,7 @@ if(FALSE) {
     kem <- fit_MARSS(observations=sqrtSpikeCounts, inits=inits, stateDim=stateDim, stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
     kem <- MARSSaic(kem)
     elapsedTime <- proc.time()[3]-startTime
-    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, kem$logLik, kem$AIC, kem$AICc, elapsedTime)
+    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, kem$logLik, kem$AIC, kem$AICc, elapsedTime$elapsed)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
     metaData[["estimation_summary"]] <- list(logLik=kem$logLik, AIC=kem$AIC, AICc=kem$AICc, elapsedTime=elapsedTime)
