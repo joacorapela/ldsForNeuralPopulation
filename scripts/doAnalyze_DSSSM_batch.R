@@ -4,13 +4,14 @@ require(MARSS)
 require(ini)
 require(optparse)
 source("../projectSrc/utils/kalmanFilter/buildGoNogoVisualAndLaserInputs.R")
+source("../commonSrc/stats/kalmanFilter/emEstimationKF_SS_withOffsetsAndInputs.R")
+source("../commonSrc/stats/kalmanFilter/filterLDS_SS_withOffsetsAndInputs.R")
+source("../commonSrc/stats/kalmanFilter/smoothLDS_SS_withOffsetsAndInputs.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondFA.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
-source("../commonSrc/stats/kalmanFilter/fit_MARSS.R")
-source("../commonSrc/stats/kalmanFilter/create_MARSS.R")
 
 processAll <- function() {
-DEBUG <- FALSE
+DEBUG <- TRUE
 if(!DEBUG) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
@@ -37,34 +38,45 @@ if(!DEBUG) {
     estConfigFilename <- arguments[[1]]
     modelsLogFilename <- arguments[[2]]
 
-} else{
+} else {
     # begin uncomment to debug
     stateDim <- 9
     stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.6
     initialCondMethod <- "FA"
-    estConfigFilename <- "data/lmShaftAll_estimation.ini"
-    modelsLogFilename <- "log/lmShaftAllModels.csv"
+    estConfigFilename <- "data/v1Shaft1_estimation_myEM.ini"
+    modelsLogFilename <- "log/v1Shaft1_myEM.csv"
     # end uncomment to debug
 }
 
     estConfig <- read.ini(estConfigFilename)
 
-browser()
+    V0 <- eval(parse(text=estConfig$initial_values$V0))
+    u0 <- eval(parse(text=estConfig$initial_values$u0))
+    C0 <- eval(parse(text=estConfig$initial_values$C0))
+    Q0 <- eval(parse(text=estConfig$initial_values$Q0))
+    a0 <- eval(parse(text=estConfig$initial_values$a0))
+    D0 <- eval(parse(text=estConfig$initial_values$D0))
+    R0 <- eval(parse(text=estConfig$initial_values$R0))
+
+    M <- nrow(V0)
+
+    if(tolower(estConfig$initial_values$m0)=="randomuniform") {
+        m0Min <- as.double(estConfig$initial_value$m0Min)
+        m0Max <- as.double(estConfig$initial_value$m0Max)
+        m0 <- runif(n=M, min=m0Min, max=m0Max)
+    } else {
+        m0 <- eval(parse(text=estConfig$initial_values$m0))
+    }
+
     region <- estConfig$control_variables$region
-    shafts <- eval(parse(text=estConfig$control_variables$shafts))
+    shaft <- as.numeric(estConfig$control_variables$shaft)
     analysisStartTimeSecs <- as.double(estConfig$control_variables$analysisStartTimeSecs)
     analysisDurSecs <- as.double(estConfig$control_variables$analysisDurSecs)
 
+    tol <- as.double(estConfig$EM$tol)
     maxIter <- as.numeric(estConfig$EM$maxIter)
-
-    kfFunc <- estConfig$MARSS$kfFunc
-    stateOffsetType <- estConfig$MARSS$stateOffsetType
-    stateCovType <- estConfig$MARSS$stateCovType
-    obsOffsetType <- estConfig$MARSS$obsOffsetType
-    obsCovType <- estConfig$MARSS$obsCovType
-    initialStateMeanType <- estConfig$MARSS$initialStateMeanType
-    initialStateCovType <- estConfig$MARSS$initialStateCovType
+    maxIter <- maxIter+1
 
     dataFilename <-  estConfig$filenames$dataFilename
     estMetaDataFilenamePattern <- estConfig$filenames$estMetaDataFilenamePattern
@@ -73,13 +85,7 @@ browser()
     data <- get(load(dataFilename))
     sRate <- data$sRate
     analysisSamples <- (analysisStartTimeSecs*sRate)+(1:(analysisDurSecs*sRate))
-    spikeCounts <- c()
-    for(shaft in shafts) {
-        shaftSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
-        nNeurons <- nrow(shaftSpikeCounts)
-        rownames(shaftSpikeCounts) <- sprintf("shaft%02dNeuron%03d", rep(shaft, times=nNeurons), 1:nNeurons)
-        spikeCounts <- rbind(spikeCounts, shaftSpikeCounts)
-    }
+    spikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
     goStim <- data$goStim[analysisSamples]
     nogoStim <- data$nogoStim[analysisSamples]
     laserStim <- data$laserStim[analysisSamples]
@@ -96,7 +102,6 @@ browser()
         }
     }
 
-    estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, estNumber)
     metaData <- list()
     metaData[["estimation_config_info"]] <- list(estConfigFilename=estConfigFilename)
     metaData[["model_info"]] <- list(stateDim=stateDim, stateInputMem=stateInputMemorySecs, obsInputMem=obsInputMemorySecs)
@@ -106,11 +111,13 @@ browser()
     startTime <- proc.time()[3]
     if(!is.nan(stateInputMemorySecs)) {
         stateInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
+        dim(stateInputs) <- c(nrow(stateInputs), 1, ncol(stateInputs))
     } else {
         stateInputs <- NA
     }
     if(!is.nan(obsInputMemorySecs)) {
         obsInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
+        dim(obsInputs) <- c(nrow(obsInputs), 1, ncol(obsInputs))
     } else {
         obsInputs <- NA
     }
@@ -118,32 +125,31 @@ browser()
         dataForFA <- t(as.matrix(sqrtSpikeCounts))
         controlFA <- list(trace=TRUE, nstart=5)
         initialConds <- estimateKFInitialCondFA(z=dataForFA, nFactors=stateDim, control=controlFA)
-        B0 <- matrix(as.vector(initialConds$B), ncol=1)
-        Z0 <- matrix(as.vector(initialConds$Z), ncol=1)
-        R0 <- matrix(initialConds$RDiag, ncol=1)
-        inits <- list(B=B0, Z=Z0, R=R0)
+        B0 <- initialConds$B
+        Z0 <- initialConds$Z
+        R0 <- diag(initialConds$RDiag)
+        initialConds <- list(B0=B0, Z0=Z0, R0=R0, u0=u0, C0=C0, Q0=Q0, a0=a0, D0=D0, m0=m0, V0=V0)
     } else {
         if(initialCondMethod=="PPCA") {
             dataForPPCA <- t(as.matrix(sqrtSpikeCounts))
             initialConds <- estimateKFInitialCondPPCA(z=dataForPPCA, nFactors=stateDim)
-            B0 <- matrix(as.vector(initialConds$B), ncol=1)
-            Z0 <- matrix(as.vector(initialConds$Z), ncol=1)
-            inits <- list(B=B0, Z=Z0)
+            B0 <- initialConds$B
+            Z0 <- initialConds$Z
+            initialConds <- list(B=B0, Z=Z0, u=u0, C=C0, Q=Q0, a=a0, D=D0, R=R0, m0=m0, V0=V0)
         } else {
             stop(sprintf("Invalid initialCondMethod=%s", initialCondMethod))
         }
     }
-    kem <- fit_MARSS(observations=sqrtSpikeCounts, inits=inits, stateDim=stateDim, stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
-    kem <- MARSSaic(kem)
+    dsSSM <- emEstimationKF_SS_withOffsetsAndInputs(y=sqrtSpikeCounts, c=stateInputs, d=obsInputs, B0=initialConds$B, u0=initialConds$u, C0=initialConds$C, Q0=initialConds$Q, Z0=initialConds$Z, a0=initialConds$a, D0=initialConds$D, R0=initialConds$R, m0=initialConds$m0, V0=initialConds$V0, maxIter=maxIter, tol=tol, varsToEstimate=list(m0=TRUE, V0=TRUE, B=TRUE, u=TRUE, C=TRUE, Q=TRUE, Z=TRUE, a=TRUE, D=TRUE, R=TRUE))
     elapsedTime <- proc.time()[3]-startTime
-    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, kem$logLik, kem$AIC, kem$AICc, elapsedTime$elapsed)
+    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], elapsedTime$elapsed)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
-    metaData[["estimation_summary"]] <- list(logLik=kem$logLik, AIC=kem$AIC, AICc=kem$AICc, elapsedTime=elapsedTime)
+    metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], elapsedTime=elapsedTime)
     write.ini(x=metaData, filepath=estMetaDataFilename)
     #
     estResFilename <- sprintf(estResFilenamePattern, estNumber)
-    estRes <- list(kem=kem, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, sqrtSpikeCounts=sqrtSpikeCounts, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
+    estRes <- list(dsSSM=dsSSM, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, sqrtSpikeCounts=sqrtSpikeCounts, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
     save(estRes, file=estResFilename)
 }
 
