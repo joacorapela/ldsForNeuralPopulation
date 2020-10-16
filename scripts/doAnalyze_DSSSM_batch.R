@@ -1,6 +1,5 @@
 
 require(MASS)
-require(MARSS)
 require(ini)
 require(optparse)
 source("../projectSrc/utils/kalmanFilter/buildGoNogoVisualAndLaserInputs.R")
@@ -50,6 +49,11 @@ if(!DEBUG) {
 }
 
     estConfig <- read.ini(estConfigFilename)
+
+    stateCovType <- estConfig$covariance_type$states
+    initialStateCovType <- estConfig$covariance_type$initialStates
+    obsCovType <- estConfig$covariance_type$observations
+    covsConstraints <- list(V0=initialStateCovType, Q=stateCovType, R=obsCovType)
 
     V0 <- eval(parse(text=estConfig$initial_values$V0))
     u0 <- eval(parse(text=estConfig$initial_values$u0))
@@ -140,16 +144,18 @@ if(!DEBUG) {
             stop(sprintf("Invalid initialCondMethod=%s", initialCondMethod))
         }
     }
-    dsSSM <- emEstimationKF_SS_withOffsetsAndInputs(y=sqrtSpikeCounts, c=stateInputs, d=obsInputs, B0=initialConds$B, u0=initialConds$u, C0=initialConds$C, Q0=initialConds$Q, Z0=initialConds$Z, a0=initialConds$a, D0=initialConds$D, R0=initialConds$R, m0=initialConds$m0, V0=initialConds$V0, maxIter=maxIter, tol=tol, varsToEstimate=list(m0=TRUE, V0=TRUE, B=TRUE, u=TRUE, C=TRUE, Q=TRUE, Z=TRUE, a=TRUE, D=TRUE, R=TRUE))
+    dsSSM <- emEstimationKF_SS_withOffsetsAndInputs(y=sqrtSpikeCounts, c=stateInputs, d=obsInputs, B0=initialConds$B, u0=initialConds$u, C0=initialConds$C, Q0=initialConds$Q, Z0=initialConds$Z, a0=initialConds$a, D0=initialConds$D, R0=initialConds$R, m0=initialConds$m0, V0=initialConds$V0, maxIter=maxIter, tol=tol, varsToEstimate=list(m0=TRUE, V0=TRUE, B=TRUE, u=TRUE, C=TRUE, Q=TRUE, Z=TRUE, a=TRUE, D=TRUE, R=TRUE), covsConstraints=covsConstraints)
     elapsedTime <- proc.time()[3]-startTime
-    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], elapsedTime$elapsed)
+    elapsedTime <- unname(elapsedTime)
+    AIC <- computeAIC(dsSSM=dsSSM)
+    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, elapsedTime)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
-    metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], elapsedTime=elapsedTime)
+    metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], AIC=AIC, elapsedTime=elapsedTime)
     write.ini(x=metaData, filepath=estMetaDataFilename)
     #
     estResFilename <- sprintf(estResFilenamePattern, estNumber)
-    estRes <- list(dsSSM=dsSSM, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, sqrtSpikeCounts=sqrtSpikeCounts, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
+    estRes <- list(dsSSM=dsSSM, AIC=AIC, initialConds=initialConds, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, sqrtSpikeCounts=sqrtSpikeCounts, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
     save(estRes, file=estResFilename)
 }
 
