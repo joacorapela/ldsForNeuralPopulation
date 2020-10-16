@@ -13,6 +13,7 @@ scripts/results/*
 !scripts/results/.gitkeep
 scripts/data/*
 !scripts/data/binLDStimeSeries.ini
+!scripts/data/doSaveDataSubset.m
 !scripts/data/v1Shaft1_estimation.ini
 !scripts/data/v1Shaft1_modelSelection.txt
 scripts/log/*
