@@ -10,7 +10,8 @@ source("../commonSrc/stats/kalmanFilter/fit_MARSS.R")
 source("../commonSrc/stats/kalmanFilter/create_MARSS.R")
 
 processAll <- function() {
-# if(FALSE) {
+DEBUG <- FALSE
+if(!DEBUG) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
         make_option(c("-s", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
@@ -36,23 +37,22 @@ processAll <- function() {
     estConfigFilename <- arguments[[1]]
     modelsLogFilename <- arguments[[2]]
 
-# }
-
-if(FALSE) {
+} else{
     # begin uncomment to debug
-    stateDim <- 6
-    stateInputMemorySecs <- 0.6
+    stateDim <- 9
+    stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.6
     initialCondMethod <- "FA"
-    estConfigFilename <- "data/v1Shaft1_estimation.ini"
-    modelsLogFilename <- "log/v1Shaft1.csv"
+    estConfigFilename <- "data/lmShaftAll_estimation.ini"
+    modelsLogFilename <- "log/lmShaftAllModels.csv"
     # end uncomment to debug
 }
 
     estConfig <- read.ini(estConfigFilename)
 
+browser()
     region <- estConfig$control_variables$region
-    shaft <- as.numeric(estConfig$control_variables$shaft)
+    shafts <- eval(parse(text=estConfig$control_variables$shafts))
     analysisStartTimeSecs <- as.double(estConfig$control_variables$analysisStartTimeSecs)
     analysisDurSecs <- as.double(estConfig$control_variables$analysisDurSecs)
 
@@ -73,7 +73,13 @@ if(FALSE) {
     data <- get(load(dataFilename))
     sRate <- data$sRate
     analysisSamples <- (analysisStartTimeSecs*sRate)+(1:(analysisDurSecs*sRate))
-    spikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
+    spikeCounts <- c()
+    for(shaft in shafts) {
+        shaftSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
+        nNeurons <- nrow(shaftSpikeCounts)
+        rownames(shaftSpikeCounts) <- sprintf("shaft%02dNeuron%03d", rep(shaft, times=nNeurons), 1:nNeurons)
+        spikeCounts <- rbind(spikeCounts, shaftSpikeCounts)
+    }
     goStim <- data$goStim[analysisSamples]
     nogoStim <- data$nogoStim[analysisSamples]
     laserStim <- data$laserStim[analysisSamples]
