@@ -242,17 +242,16 @@ if(FALSE) {
         orca(p=fig, file=pngFilename)
         # print(fig)
     }
-
+}
     show("Plotting R")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "R", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "R", "html")
-    fig <- getPlotTrueInitialAndEstimatedVectors(estimated=dsSSM$R, xlab="Observation Index")
+    fig <- getPlotTrueInitialAndEstimatedVectors(estimated=diag(dsSSM$R), xlab="Observation Index")
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-}
-
+if(FALSE) {
     predStats <- computeOneStepAheadObsPredStats(xtt1=kfRes$xnn1[,1,], Vtt1=kfRes$Vnn1, Z=dsSSM$Z, a=as.vector(dsSSM$a), D=dsSSM$D, R=dsSSM$R, obsInputs=estRes$obsInputs[,1,])
 
     show("Plotting percExpVar")
@@ -285,21 +284,22 @@ if(FALSE) {
     show("Plotting smoothedStates")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "html")
-    fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN, VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
+    fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN[,1,], VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
-
 
     for(i in 1:nrow(ksRes$xnN)) {
         show(sprintf("Plotting smoothedState %d", i))
         pngFilename <- sprintf(figFilenamePattern, estNumber, sprintf("smoothedState%d", i), "png")
         htmlFilename <- sprintf(figFilenamePattern, estNumber, sprintf("smoothedState%d", i), "html")
-        fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN, VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, statesToPlot=c(i))
+        fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN[,1,], VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, statesToPlot=c(i))
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
     }
+
+}
 
     browser()
 }
