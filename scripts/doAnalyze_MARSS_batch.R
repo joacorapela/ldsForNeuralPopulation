@@ -10,7 +10,7 @@ source("../commonSrc/stats/kalmanFilter/fit_MARSS.R")
 source("../commonSrc/stats/kalmanFilter/create_MARSS.R")
 
 processAll <- function() {
-DEBUG <- FALSE
+DEBUG <- TRUE
 if(!DEBUG) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
@@ -43,14 +43,13 @@ if(!DEBUG) {
     stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.6
     initialCondMethod <- "FA"
-    estConfigFilename <- "data/lmShaftAll_estimation.ini"
-    modelsLogFilename <- "log/lmShaftAllModels.csv"
+    estConfigFilename <- "data/v1Shaft1_estimation.ini"
+    modelsLogFilename <- "log/v1Shaf1lModels.csv"
     # end uncomment to debug
 }
 
     estConfig <- read.ini(estConfigFilename)
 
-browser()
     region <- estConfig$control_variables$region
     shafts <- eval(parse(text=estConfig$control_variables$shafts))
     analysisStartTimeSecs <- as.double(estConfig$control_variables$analysisStartTimeSecs)
@@ -134,8 +133,8 @@ browser()
         }
     }
     kem <- fit_MARSS(observations=sqrtSpikeCounts, inits=inits, stateDim=stateDim, stateInputs=stateInputs, stateOffsetType=stateOffsetType, stateCovType=stateCovType, obsInputs=obsInputs, obsOffsetType=obsOffsetType, obsCovType=obsCovType, initialStateMeanType=initialStateMeanType, initialStateCovType=initialStateCovType, maxIter=maxIter, kfFunc=kfFunc)
-    kem <- MARSSaic(kem)
     elapsedTime <- proc.time()[3]-startTime
+    kem <- MARSSaic(kem)
     logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, kem$logLik, kem$AIC, kem$AICc, elapsedTime$elapsed)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
