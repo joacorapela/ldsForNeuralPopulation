@@ -5,7 +5,7 @@ require(optparse)
 source("../projectSrc/utils/kalmanFilter/buildGoNogoVisualAndLaserInputs.R")
 source("../commonSrc/stats/kalmanFilter/emEstimationKF_SS_withOffsetsAndInputs.R")
 source("../commonSrc/stats/kalmanFilter/filterLDS_SS_withOffsetsAndInputs.R")
-source("../commonSrc/stats/kalmanFilter/smoothLDS_SS_withOffsetsAndInputs.R")
+source("../commonSrc/stats/kalmanFilter/smoothLDS_SS.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondFA.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
 
