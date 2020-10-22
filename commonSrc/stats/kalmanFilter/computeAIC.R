@@ -41,6 +41,5 @@ computeAIC <- function(dsSSM) {
     logLik <- dsSSM$logLik[length(dsSSM$logLik)]
     k <- computeNParams(dsSSM=dsSSM)
     AIC <- 2*(k-logLik)
-    browser()
     return(AIC)
 }
