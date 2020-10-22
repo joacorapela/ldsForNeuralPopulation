@@ -3,20 +3,24 @@ require(MASS)
 require(ini)
 require(optparse)
 source("../projectSrc/utils/kalmanFilter/buildGoNogoVisualAndLaserInputs.R")
+source("../projectSrc/utils/kalmanFilter/getInitialConds.R")
 source("../commonSrc/stats/kalmanFilter/emEstimationKF_SS_withOffsetsAndInputs.R")
 source("../commonSrc/stats/kalmanFilter/filterLDS_SS_withOffsetsAndInputs.R")
 source("../commonSrc/stats/kalmanFilter/smoothLDS_SS.R")
+source("../commonSrc/stats/kalmanFilter/computeAIC.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondFA.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
 
 processAll <- function() {
-DEBUG <- TRUE
+# DEBUG <- TRUE
+DEBUG <- FALSE
 if(!DEBUG) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
         make_option(c("-s", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
         make_option(c("-o", "--obsInputMemorySecs"), type="double", default=0.6, help="Observations input memory (sec)"),
-        make_option(c("-i", "--initialCondMethod"), type="character", default="FA", help="Initial conditions method (FA: factor analysis; PPCA: probabilisitc PCA")
+        make_option(c("-i", "--initialCondMethod"), type="character", default="FA", help="Initial conditions method (FA: factor analysis; PPCA: probabilisitc PCA"),
+        make_option(c("-n", "--nStartFA"), type="integer", default=5, help="Number of start values for factor analysis")
     )
     parser <- OptionParser(usage = "%prog [options] configFilename modelsLogFilename", option_list=option_list)
     parseRes <- parse_args(parser, positional_arguments=2)
@@ -33,18 +37,22 @@ if(!DEBUG) {
         obsInputMemorySecs <- NaN
     }
     initialCondMethod <- options$initialCondMethod
+    nStartFA <- options$nStartFA
 
     estConfigFilename <- arguments[[1]]
     modelsLogFilename <- arguments[[2]]
 
 } else {
     # begin uncomment to debug
-    stateDim <- 9
-    stateInputMemorySecs <- 0.0
-    obsInputMemorySecs <- 0.6
-    initialCondMethod <- "FA"
-    estConfigFilename <- "data/v1Shaft1_estimation_myEM.ini"
-    modelsLogFilename <- "log/v1Shaft1_myEM.csv"
+    stateDim <- 17
+    stateInputMemorySecs <- 0.1
+    obsInputMemorySecs <- 0.1
+    initialCondMethod <- "PPCA"
+    estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start180_dur600.ini"
+    modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start180_dur600.csv"
+    # estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start2580_dur600.ini"
+    # modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start2580_dur600.csv"
+    nStartFA <- 5
     # end uncomment to debug
 }
 
@@ -55,28 +63,11 @@ if(!DEBUG) {
     obsCovType <- estConfig$covariance_type$observations
     covsConstraints <- list(V0=initialStateCovType, Q=stateCovType, R=obsCovType)
 
-    V0 <- eval(parse(text=estConfig$initial_values$V0))
-    u0 <- eval(parse(text=estConfig$initial_values$u0))
-    C0 <- eval(parse(text=estConfig$initial_values$C0))
-    Q0 <- eval(parse(text=estConfig$initial_values$Q0))
-    a0 <- eval(parse(text=estConfig$initial_values$a0))
-    D0 <- eval(parse(text=estConfig$initial_values$D0))
-    R0 <- eval(parse(text=estConfig$initial_values$R0))
-
-    M <- nrow(V0)
-
-    if(tolower(estConfig$initial_values$m0)=="randomuniform") {
-        m0Min <- as.double(estConfig$initial_value$m0Min)
-        m0Max <- as.double(estConfig$initial_value$m0Max)
-        m0 <- runif(n=M, min=m0Min, max=m0Max)
-    } else {
-        m0 <- eval(parse(text=estConfig$initial_values$m0))
-    }
-
     region <- estConfig$control_variables$region
     shaft <- as.numeric(estConfig$control_variables$shaft)
     analysisStartTimeSecs <- as.double(estConfig$control_variables$analysisStartTimeSecs)
-    analysisDurSecs <- as.double(estConfig$control_variables$analysisDurSecs)
+    trainDurSecs <- as.double(estConfig$control_variables$trainDurSecs)
+    validationDurSecs <- as.double(estConfig$control_variables$validationDurSecs)
 
     tol <- as.double(estConfig$EM$tol)
     maxIter <- as.numeric(estConfig$EM$maxIter)
@@ -88,12 +79,25 @@ if(!DEBUG) {
 
     data <- get(load(dataFilename))
     sRate <- data$sRate
-    analysisSamples <- (analysisStartTimeSecs*sRate)+(1:(analysisDurSecs*sRate))
-    spikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,analysisSamples]
-    goStim <- data$goStim[analysisSamples]
-    nogoStim <- data$nogoStim[analysisSamples]
-    laserStim <- data$laserStim[analysisSamples]
-    sqrtSpikeCounts <- sqrt(spikeCounts)
+    trainSamples <- (analysisStartTimeSecs*sRate)+(1:(trainDurSecs*sRate))
+    validationSamples <- max(trainSamples)+(1:(validationDurSecs*sRate))
+
+    trainSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,trainSamples]
+    trainSqrtSpikeCounts <- sqrt(trainSpikeCounts)
+    validationSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,validationSamples]
+    validationSqrtSpikeCounts <- sqrt(validationSpikeCounts)
+
+    trainGoStim <- data$goStim[trainSamples]
+    validationGoStim <- data$goStim[validationSamples]
+
+    trainNogoStim <- data$nogoStim[trainSamples]
+    validationNogoStim <- data$nogoStim[validationSamples]
+
+    trainLaserStim <- data$laserStim[trainSamples]
+    validationLaserStim <- data$laserStim[validationSamples]
+
+    obsDim <- nrow(trainSqrtSpikeCounts)
+    initialConds <- getInitialConds(initialValues=estConfig$initial_values, stateDim=stateDim, obsDim=obsDim, stateInputMemorySamples=stateInputMemorySecs*sRate, obsInputMemorySamples=obsInputMemorySecs*sRate)
 
     show(sprintf("Processing number of latents=%d, state input memory=%f sec, observation input memory=%f sec", stateDim, stateInputMemorySecs, obsInputMemorySecs))
 
@@ -112,50 +116,53 @@ if(!DEBUG) {
     write.ini(x=metaData, filepath=estMetaDataFilename)
     show(sprintf("Saved estimation meta data to: %s", estMetaDataFilename))
 
-    startTime <- proc.time()[3]
     if(!is.nan(stateInputMemorySecs)) {
-        stateInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
-        dim(stateInputs) <- c(nrow(stateInputs), 1, ncol(stateInputs))
+        trainStateInputs <- buildGoNogoVisualAndLaserInputs(goStim=trainGoStim, nogoStim=trainNogoStim, laserStim=trainLaserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
+        dim(trainStateInputs) <- c(nrow(trainStateInputs), 1, ncol(trainStateInputs))
+        validationStateInputs <- buildGoNogoVisualAndLaserInputs(goStim=validationGoStim, nogoStim=validationNogoStim, laserStim=validationLaserStim, inputMemory=as.integer(stateInputMemorySecs*sRate))
+        dim(validationStateInputs) <- c(nrow(validationStateInputs), 1, ncol(validationStateInputs))
     } else {
-        stateInputs <- NA
+        trainStateInputs <- NA
+        validationStateInputs <- NA
     }
     if(!is.nan(obsInputMemorySecs)) {
-        obsInputs <- buildGoNogoVisualAndLaserInputs(goStim=goStim, nogoStim=nogoStim, laserStim=laserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
-        dim(obsInputs) <- c(nrow(obsInputs), 1, ncol(obsInputs))
+        trainObsInputs <- buildGoNogoVisualAndLaserInputs(goStim=trainGoStim, nogoStim=trainNogoStim, laserStim=trainLaserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
+        dim(trainObsInputs) <- c(nrow(trainObsInputs), 1, ncol(trainObsInputs))
+        validationObsInputs <- buildGoNogoVisualAndLaserInputs(goStim=validationGoStim, nogoStim=validationNogoStim, laserStim=validationLaserStim, inputMemory=as.integer(obsInputMemorySecs*sRate))
+        dim(validationObsInputs) <- c(nrow(validationObsInputs), 1, ncol(validationObsInputs))
     } else {
-        obsInputs <- NA
+        trainObsInputs <- NA
+        validationObsInputs <- NA 
     }
+
+    dataForEstInitialCond <- t(as.matrix(trainSqrtSpikeCounts))
+    startTime <- proc.time()[3]
     if(initialCondMethod=="FA") {
-        dataForFA <- t(as.matrix(sqrtSpikeCounts))
-        controlFA <- list(trace=TRUE, nstart=5)
-        initialConds <- estimateKFInitialCondFA(z=dataForFA, nFactors=stateDim, control=controlFA)
-        B0 <- initialConds$B
-        Z0 <- initialConds$Z
-        R0 <- diag(initialConds$RDiag)
-        initialConds <- list(B0=B0, Z0=Z0, R0=R0, u0=u0, C0=C0, Q0=Q0, a0=a0, D0=D0, m0=m0, V0=V0)
+        controlFA <- list(trace=TRUE, nstart=nStartFA)
+        estRes <- estimateKFInitialCondFA(z=dataForEstInitialCond, nFactors=stateDim, control=controlFA)
+        initialConds <- c(list(B=estRes$B, Z=estRes$Z, R=diag(estRes$RDiag)), initialConds)
     } else {
         if(initialCondMethod=="PPCA") {
-            dataForPPCA <- t(as.matrix(sqrtSpikeCounts))
-            initialConds <- estimateKFInitialCondPPCA(z=dataForPPCA, nFactors=stateDim)
-            B0 <- initialConds$B
-            Z0 <- initialConds$Z
-            initialConds <- list(B=B0, Z=Z0, u=u0, C=C0, Q=Q0, a=a0, D=D0, R=R0, m0=m0, V0=V0)
+            estRes <- estimateKFInitialCondPPCA(z=dataForEstInitialCond, nFactors=stateDim)
+            initialConds <- c(list(B=estRes$B, Z=estRes$Z), initialConds)
         } else {
             stop(sprintf("Invalid initialCondMethod=%s", initialCondMethod))
         }
     }
-    dsSSM <- emEstimationKF_SS_withOffsetsAndInputs(y=sqrtSpikeCounts, c=stateInputs, d=obsInputs, B0=initialConds$B, u0=initialConds$u, C0=initialConds$C, Q0=initialConds$Q, Z0=initialConds$Z, a0=initialConds$a, D0=initialConds$D, R0=initialConds$R, m0=initialConds$m0, V0=initialConds$V0, maxIter=maxIter, tol=tol, varsToEstimate=list(m0=TRUE, V0=TRUE, B=TRUE, u=TRUE, C=TRUE, Q=TRUE, Z=TRUE, a=TRUE, D=TRUE, R=TRUE), covsConstraints=covsConstraints)
+    dsSSM <- emEstimationKF_SS_withOffsetsAndInputs(y=trainSqrtSpikeCounts, c=trainStateInputs, d=trainObsInputs, B0=initialConds$B, u0=initialConds$u, C0=initialConds$C, Q0=initialConds$Q, Z0=initialConds$Z, a0=initialConds$a, D0=initialConds$D, R0=initialConds$R, m0=initialConds$m0, V0=initialConds$V0, maxIter=maxIter, tol=tol, varsToEstimate=list(m0=TRUE, V0=TRUE, B=TRUE, u=TRUE, C=TRUE, Q=TRUE, Z=TRUE, a=TRUE, D=TRUE, R=TRUE), covsConstraints=covsConstraints)
     elapsedTime <- proc.time()[3]-startTime
     elapsedTime <- unname(elapsedTime)
+
     AIC <- computeAIC(dsSSM=dsSSM)
-    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, elapsedTime)
+    cvLogLike <- filterLDS_SS_withOffsetsAndInputs(y=validationSpikeCounts, c=validationStateInputs, d=validationObsInputs, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, Q=dsSSM$Q, m0=dsSSM$xNN, V0=dsSSM$VNN, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, R=dsSSM$R)$logLike
+    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
-    metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], AIC=AIC, elapsedTime=elapsedTime)
+    metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], AIC=AIC, cvLogLike=cvLogLike, elapsedTime=elapsedTime)
     write.ini(x=metaData, filepath=estMetaDataFilename)
     #
     estResFilename <- sprintf(estResFilenamePattern, estNumber)
-    estRes <- list(dsSSM=dsSSM, AIC=AIC, initialConds=initialConds, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, sqrtSpikeCounts=sqrtSpikeCounts, stateInputs=stateInputs, obsInputs=obsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
+    estRes <- list(dsSSM=dsSSM, AIC=AIC, cvLogLike=cvLogLike, initialConds=initialConds, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, trainSqrtSpikeCounts=trainSqrtSpikeCounts, stateInputs=trainStateInputs, obsInputs=trainObsInputs, sRate=sRate, startTime=analysisStartTimeSecs)
     save(estRes, file=estResFilename)
 }
 
