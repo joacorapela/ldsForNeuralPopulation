@@ -20,7 +20,11 @@ filterLDS_SS_withOffsetsAndInputs <- function(y, B, u, C, c, Q, m0, V0, Z, a, D,
         # predicted state mean and covariance
         if(k==1) {
             if(initStateAt==0) {
-                xnn1[,,k] <- B%*%m0+u+C%*%c[,,1]
+                if(!is.na(c[1])) {
+                    xnn1[,,k] <- B%*%m0+u+C%*%c[,,1]
+                } else {
+                    xnn1[,,k] <- B%*%m0+u
+                }
                 Vnn1[,,k] <- B%*%V0%*%t(B)+Q
             } else {
                 if(initStateAt==1) {
@@ -31,11 +35,19 @@ filterLDS_SS_withOffsetsAndInputs <- function(y, B, u, C, c, Q, m0, V0, Z, a, D,
                 }
             }
         } else {
-            xnn1[,,k] <- B%*%xnn[,,k-1]+u+C%*%c[,,k]
+            if(!is.na(c[1])) {
+                xnn1[,,k] <- B%*%xnn[,,k-1]+u+C%*%c[,,k]
+            } else {
+                xnn1[,,k] <- B%*%xnn[,,k-1]+u
+            }
             Vnn1[,,k] <- B%*%Vnn[,,k-1]%*%t(B)+Q
         }
         # innovation
-        ynn1 <- Z%*%xnn1[,,k]+a+D%*%d[,,k]
+        if(!is.na(d[1])) {
+            ynn1 <- Z%*%xnn1[,,k]+a+D%*%d[,,k]
+        } else {
+            ynn1 <- Z%*%xnn1[,,k]+a
+        }
         innov[,,k] <- y[,k]-ynn1
         # innovation covariance
         S <- Z%*%Vnn1[,,k]%*%t(Z)+R
