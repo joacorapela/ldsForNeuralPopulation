@@ -50,11 +50,13 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
     }
     B <- as.matrix(B0)
     u <- as.matrix(u0)
-    C <- as.matrix(C0)
+    # C <- as.matrix(C0)
+    C <- C0
     Q <- as.matrix(Q0)
     Z <- as.matrix(Z0)
     a <- as.matrix(a0)
-    D <- as.matrix(D0)
+    # D <- as.matrix(D0)
+    D <- D0
     R <- as.matrix(R0)
     m0 <- as.matrix(m0)
     V0 <- as.matrix(V0)
@@ -80,7 +82,7 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
         if (abs(cvg) < tol) {
             break
         }
-        ks <- smoothLDS_SS(B=B, xnn=kf$xnn, Vnn=kf$Vnn, xnn1=kf$xnn1, Vnn1=kf$Vnn1, m0=m0, V0=V0, initStateAt=0)
+        ks <- smoothLDS_SS(B=B, xnn=kf$xnn, Vnn=kf$Vnn, xnn1=kf$xnn1, Vnn1=kf$Vnn1, m0=m0, V0=V0)
         Vnn1N <- lag1CovSmootherLDS_SS(Z=Z, KN=kf$KN, B=B, Vnn=kf$Vnn, Jn=ks$Jn, J0=ks$J0)
         # begin compute summary statistics
         if(varsToEstimate$B || varsToEstimate$Q) {
@@ -90,33 +92,41 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
         if(varsToEstimate$Q || varsToEstimate$R || varsToEstimate$Z) {
             Sxx11 <- ks$xnN[,,1]%*%t(ks$xnN[,,1])+ks$VnN[,,1]
         }
-        if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+        if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
             Sxc01 <- ks$x0N%*%t(c[,,1])
         }
-        if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+        if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
             Sxc11 <- ks$xnN[,,1]%*%t(c[,,1])
         }
         if(varsToEstimate$R) {
             Syx11 <- y[,1]%*%t(ks$xnN[,,1])
-            Sxd11 <- ks$xnN[,,1]%*%t(d[,,1])
             Syy11 <- y[,1]%*%t(y[,1])
+        }
+        if(!is.na(d[1]) && varsToEstimate$R) {
+            Sxd11 <- ks$xnN[,,1]%*%t(d[,,1])
             Syd11 <- y[,1]%*%t(d[,,1])
         }
         if(varsToEstimate$Z) {
-            Symsx11 <- (y[,1]-a-D%*%d[,,1])%*%t(ks$xnN[,,1])
+            if(!is.na(d[1])) {
+                Symsx11 <- (y[,1]-a-D%*%d[,,1])%*%t(ks$xnN[,,1])
+            } else {
+                Symsx11 <- (y[,1]-a)%*%t(ks$xnN[,,1])
+            }
         }
-        if(varsToEstimate$D) {
+        if(!is.na(d[1]) && varsToEstimate$D) {
             Sy1d11 <- (y[,1]-Z%*%ks$xnN[,,1]-a)%*%t(d[,,1])
         }
-        if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+        if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
             Scc11 <- c[,,1]%*%t(c[,,1])
         }
-        if(varsToEstimate$D || varsToEstimate$R) {
+        if(!is.na(d[1]) && (varsToEstimate$D || varsToEstimate$R)) {
             Sdd11 <- d[,,1]%*%t(d[,,1])
         }
         #
         if(varsToEstimate$a || varsToEstimate$R) {
             Sy1 <- y[,1]
+        }
+        if(!is.na(d[1]) && (varsToEstimate$a || varsToEstimate$R)) {
             Sd1 <- d[,,1]
         }
         if(varsToEstimate$a || varsToEstimate$B || varsToEstimate$Q || varsToEstimate$R|| varsToEstimate$u ) {
@@ -124,6 +134,8 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
         }
         if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q || varsToEstimate$u) {
             Sx0 <- ks$x0N
+        }
+        if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q || varsToEstimate$u)) {
             Sc1 <- c[,,1]
         }
         for (n in 2:N) {
@@ -134,33 +146,41 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
             if(varsToEstimate$Q || varsToEstimate$R || varsToEstimate$Z) {
                 Sxx11 <- Sxx11+ks$xnN[,,n]%*%t(ks$xnN[,,n])+ks$VnN[,,n]
             }
-            if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+            if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
                 Sxc01 <- Sxc01+ks$xnN[,,n-1]%*%t(c[,,n])
             }
-            if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+            if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
                 Sxc11 <- Sxc11+ks$xnN[,,n]%*%t(c[,,n])
             }
             if(varsToEstimate$R) {
                 Syx11 <- Syx11+y[,n]%*%t(ks$xnN[,,n])
-                Sxd11 <- Sxd11+ks$xnN[,,n]%*%t(d[,,n])
                 Syy11 <- Syy11+y[,n]%*%t(y[,n])
+            }
+            if(!is.na(d[1]) && (varsToEstimate$R)) {
+                Sxd11 <- Sxd11+ks$xnN[,,n]%*%t(d[,,n])
                 Syd11 <- Syd11+y[,n]%*%t(d[,,n])
             }
             if(varsToEstimate$Z) {
-                Symsx11 <- Symsx11+(y[,n]-a-D%*%d[,,n])%*%t(ks$xnN[,,n])
+                if(!is.na(d[1])) {
+                    Symsx11 <- Symsx11+(y[,n]-a-D%*%d[,,n])%*%t(ks$xnN[,,n])
+                } else {
+                    Symsx11 <- Symsx11+(y[,n]-a)%*%t(ks$xnN[,,n])
+                }
             }
-            if(varsToEstimate$D) {
+            if(!is.na(d[1]) && (varsToEstimate$D)) {
                 Sy1d11 <- Sy1d11+(y[,n]-Z%*%ks$xnN[,,n]-a)%*%t(d[,,n])
             }
-            if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q) {
+            if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q)) {
                 Scc11 <- Scc11+c[,,n]%*%t(c[,,n])
             }
-            if(varsToEstimate$D || varsToEstimate$R) {
+            if(!is.na(d[1]) && (varsToEstimate$D || varsToEstimate$R)) {
                 Sdd11 <- Sdd11+d[,,n]%*%t(d[,,n])
             }
             #
             if(varsToEstimate$a || varsToEstimate$R) {
                 Sy1 <- Sy1+y[,n]
+            }
+            if(!is.na(d[1]) && (varsToEstimate$a || varsToEstimate$R)) {
                 Sd1 <- Sd1+d[,,n]
             }
             if(varsToEstimate$a || varsToEstimate$B || varsToEstimate$Q || varsToEstimate$R|| varsToEstimate$u ) {
@@ -168,6 +188,8 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
             }
             if(varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q || varsToEstimate$u) {
                 Sx0 <- Sx0+ks$xnN[,,n-1]
+            }
+            if(!is.na(c[1]) && (varsToEstimate$B || varsToEstimate$C || varsToEstimate$Q || varsToEstimate$u)) {
                 Sc1 <- Sc1+c[,,n]
             }
         }
@@ -175,18 +197,27 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
 
         # begin compute estimates
         if(varsToEstimate$B) {
-            commonFactor <- solve(Scc11-1/N*Sc1%*%t(Sc1))%*%(t(Sxc01)-1/N*Sc1%*%t(Sx0))
-            num <- Sxx10-1/N*Sx1%*%t(Sx0)-(Sxc11-1/N*Sx1%*%t(Sc1))%*%commonFactor
-            den <- Sxx00-1/N*Sx0%*%t(Sx0)-(Sxc01-1/N*Sx0%*%t(Sc1))%*%commonFactor
+            if(!is.na(c[1])) {
+                commonFactor <- solve(Scc11-1/N*Sc1%*%t(Sc1))%*%(t(Sxc01)-1/N*Sc1%*%t(Sx0))
+                num <- Sxx10-1/N*Sx1%*%t(Sx0)-(Sxc11-1/N*Sx1%*%t(Sc1))%*%commonFactor
+                den <- Sxx00-1/N*Sx0%*%t(Sx0)-(Sxc01-1/N*Sx0%*%t(Sc1))%*%commonFactor
+            } else {
+                num <- Sxx10-1/N*Sx1%*%t(Sx0)
+                den <- Sxx00-1/N*Sx0%*%t(Sx0)
+            }
             B <- num%*%solve(den)
         }
-        if(varsToEstimate$C) {
+        if(!is.na(c[1]) && varsToEstimate$C) {
             num <- Sxc11-B%*%Sxc01-1/N*(Sx1-B%*%Sx0)%*%t(Sc1)
             den <- Scc11-1/N*Sc1%*%t(Sc1)
             C <- num%*%solve(den)
         }
         if(varsToEstimate$u) {
-            u <- 1/N*(Sx1-B%*%Sx0-C%*%Sc1)
+            if(!is.na(c[1])) {
+                u <- 1/N*(Sx1-B%*%Sx0-C%*%Sc1)
+            } else {
+                u <- 1/N*(Sx1-B%*%Sx0)
+            }
         }
         if(varsToEstimate$Q) {
             Q <- Sxx11
@@ -197,23 +228,25 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
             aux <- Sx1%*%t(u)
             Q <- Q-(aux+t(aux))
 
-            aux <- Sxc11%*%t(C)
-            Q <- Q-(aux+t(aux))
-
             Q <- Q+B%*%Sxx00%*%t(B)
 
             aux <- B%*%Sx0%*%t(u)
             Q <- Q+(aux+t(aux))
 
-            aux <- B%*%Sxc01%*%t(C)
-            Q <- Q+(aux+t(aux))
-
             Q <- Q+N*u%*%t(u)
 
-            aux <- u%*%Sc1%*%t(C)
-            Q <- Q+(aux+t(aux))
+            if(!is.na(c[1])) {
+                aux <- Sxc11%*%t(C)
+                Q <- Q-(aux+t(aux))
 
-            Q <- Q+C%*%Scc11%*%t(C)
+                aux <- B%*%Sxc01%*%t(C)
+                Q <- Q+(aux+t(aux))
+
+                aux <- u%*%Sc1%*%t(C)
+                Q <- Q+(aux+t(aux))
+
+                Q <- Q+C%*%Scc11%*%t(C)
+            }
 
             Q <- Q/N
 
@@ -226,11 +259,15 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
         if(varsToEstimate$Z) {
             Z <- Symsx11%*%solve(Sxx11)
         }
-        if(varsToEstimate$D) {
+        if(!is.na(d[1]) && varsToEstimate$D) {
             D <- Sy1d11%*%solve(Sdd11)
         }
         if(varsToEstimate$a) {
-            a <- (Sy1-Z%*%Sx1-D%*%Sd1)/N
+            if(!is.na(d[1])) {
+                a <- (Sy1-Z%*%Sx1-D%*%Sd1)/N
+            } else {
+                a <- (Sy1-Z%*%Sx1)/N
+            }
         }
         if(varsToEstimate$R) {
             R <- Syy11
@@ -241,23 +278,25 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
             aux <- Sy1%*%t(a)
             R <- R-(aux+t(aux))
 
-            aux <- Syd11%*%t(D)
-            R <- R-(aux+t(aux))
-
             R <- R+Z%*%Sxx11%*%t(Z)
 
             aux <- Z%*%Sx1%*%t(a)
             R <- R+(aux+t(aux))
 
-            aux <- Z%*%Sxd11%*%t(D)
-            R <- R+(aux+t(aux))
-
             R <- R+N*a%*%t(a)
 
-            aux <- a%*%Sd1%*%t(D)
-            R <- R+(aux+t(aux))
+            if(!is.na(d[1])) {
+                aux <- Syd11%*%t(D)
+                R <- R-(aux+t(aux))
 
-            R <- R+D%*%Sdd11%*%t(D)
+                aux <- Z%*%Sxd11%*%t(D)
+                R <- R+(aux+t(aux))
+
+                aux <- a%*%Sd1%*%t(D)
+                R <- R+(aux+t(aux))
+
+                R <- R+D%*%Sdd11%*%t(D)
+            }
 
             R <- R/N
 
@@ -280,6 +319,6 @@ emEstimationKF_SS_withOffsetsAndInputs <- function(y, c, d, B0, u0, C0, Q0, Z0, 
         }
         # end compute estimates
     }
-    answer <- list(B=B, u=u, C=C, Q=Q, Z=Z, a=a, D=D, R=R, m0=m0, V0=V0, logLik=logLik[1:iter], niter=iter, cvg=cvg, covsConstraints=covsConstraints)
+    answer <- list(B=B, u=u, C=C, Q=Q, Z=Z, a=a, D=D, R=R, m0=m0, V0=V0, xNN=ks$xnN[,,N], VNN=ks$VnN[,,N], logLik=logLik[1:iter], niter=iter, cvg=cvg, covsConstraints=covsConstraints)
     return(answer)
 }
