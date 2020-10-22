@@ -5,7 +5,7 @@ require(optparse)
 require(plotly)
 source("../commonSrc/stats/utils/computePercentageExplainedVar.R")
 source("../commonSrc/stats/kalmanFilter/filterLDS_SS_withOffsetsAndInputs.R")
-source("../commonSrc/stats/kalmanFilter/smoothLDS_SS_withOffsetsAndInputs.R")
+source("../commonSrc/stats/kalmanFilter/smoothLDS_SS.R")
 source("../commonSrc/stats/kalmanFilter/computeOneStepAheadObsPredStats.R")
 source("../commonSrc/plot/kalmanFilter/getPlotTrueInitialAndEstimatedMatrices.R")
 source("../commonSrc/plot/kalmanFilter/getPlotTrueInitialAndEstimatedVectors.R")
@@ -32,7 +32,7 @@ processAll <- function() {
         estMetaDataFilenamePattern <- options$estMetaDataFilenamePattern
         figFilenamePattern <- options$figFilenamePattern
     } else {
-        estNumber <- 87430650
+        estNumber <- 53790803
         estMetaDataFilenamePattern <- "results/%08d_estimation.ini"
         figFilenamePattern <- "figures/%08d_%s.%s"
     }
@@ -57,7 +57,7 @@ processAll <- function() {
     obsInputMemorySamples <- obsInputMemorySecs*sRate
 
     kfRes <- filterLDS_SS_withOffsetsAndInputs(y=estRes$sqrtSpikeCounts, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, c=estRes$stateInputs, Q=dsSSM$Q, m0=dsSSM$m0, V0=dsSSM$V0, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, d=estRes$obsInputs, R=dsSSM$R)
-    ksRes <- smoothLDS_SS_withOffsetsAndInputs(B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, c=dsSSM$c, Q=dsSSM$Q, xnn=kfRes$xnn, Vnn=kfRes$Vnn, xnn1=kfRes$xnn1, Vnn1=kfRes$Vnn1, m0=dsSSM$m0, V0=dsSSM$V0, initStateAt=0)
+    ksRes <- smoothLDS_SS(B=dsSSM$B, xnn=kfRes$xnn, Vnn=kfRes$Vnn, xnn1=kfRes$xnn1, Vnn1=kfRes$Vnn1, m0=dsSSM$m0, V0=dsSSM$V0)
 
     sqrtSpikeCounts <- estRes$sqrtSpikeCounts
     time <- estRes$startTime+(1:ncol(estRes$sqrtSpikeCounts))/estRes$sRate
@@ -86,7 +86,7 @@ processAll <- function() {
     laserStimOn <- laserStimOn[toKeepIndices]
     laserStimOff <- laserStimOff[toKeepIndices]
 
-if(FALSE) {
+# if(FALSE) {
     show("Plotting logLik")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "html")
@@ -200,7 +200,7 @@ if(FALSE) {
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
-
+# }
     if(!is.nan(obsInputMemorySecs)) {
         show("Plotting D")
         x <- (0:obsInputMemorySamples)/sRate
@@ -242,7 +242,8 @@ if(FALSE) {
         orca(p=fig, file=pngFilename)
         # print(fig)
     }
-}
+
+# if(FALSE) {
     show("Plotting R")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "R", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "R", "html")
@@ -251,7 +252,6 @@ if(FALSE) {
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-if(FALSE) {
     predStats <- computeOneStepAheadObsPredStats(xtt1=kfRes$xnn1[,1,], Vtt1=kfRes$Vnn1, Z=dsSSM$Z, a=as.vector(dsSSM$a), D=dsSSM$D, R=dsSSM$R, obsInputs=estRes$obsInputs[,1,])
 
     show("Plotting percExpVar")
@@ -263,12 +263,12 @@ if(FALSE) {
     orca(p=fig, file=pngFilename)
     # print(fig)
 
-    show("Plotting oneStepAheadForecasts")
-    pngFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "png")
-    htmlFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "html")
-    fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
-    htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
-    orca(p=fig, file=pngFilename)
+#     show("Plotting oneStepAheadForecasts")
+#     pngFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "png")
+#     htmlFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "html")
+#     fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
+#     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
+#     orca(p=fig, file=pngFilename)
     # print(fig)
 
     for(i in 1:nrow(predStats$ytt1)) {
@@ -281,12 +281,12 @@ if(FALSE) {
         # print(fig)
     }
 
-    show("Plotting smoothedStates")
-    pngFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "png")
-    htmlFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "html")
-    fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN[,1,], VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
-    htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
-    orca(p=fig, file=pngFilename)
+#     show("Plotting smoothedStates")
+#     pngFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "png")
+#     htmlFilename <- sprintf(figFilenamePattern, estNumber, "smoothedStates", "html")
+#     fig <- getPlotSmoothedStates(time=time, xtT=ksRes$xnN[,1,], VtT=ksRes$VnN, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
+#     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
+#     orca(p=fig, file=pngFilename)
     # print(fig)
 
     for(i in 1:nrow(ksRes$xnN)) {
@@ -298,8 +298,7 @@ if(FALSE) {
         orca(p=fig, file=pngFilename)
         # print(fig)
     }
-
-}
+# }
 
     browser()
 }
