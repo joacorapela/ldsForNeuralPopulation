@@ -168,7 +168,7 @@ if(!DEBUG) {
     elapsedTime <- unname(elapsedTime)
 
     AIC <- computeAIC(dsSSM=dsSSM)
-    cvLogLike <- filterLDS_SS_withOffsetsAndInputs(y=validationSpikeCounts, c=validationStateInputs, d=validationObsInputs, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, Q=dsSSM$Q, m0=dsSSM$xNN, V0=dsSSM$VNN, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, R=dsSSM$R)$logLike
+    cvLogLike <- filterLDS_SS_withOffsetsAndInputs(y=validationSqrtSpikeCounts, c=validationStateInputs, d=validationObsInputs, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, Q=dsSSM$Q, m0=dsSSM$xNN, V0=dsSSM$VNN, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, R=dsSSM$R)$logLike
     logMessage <- sprintf("%d, %f, %f, %f, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
