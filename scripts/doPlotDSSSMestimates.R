@@ -16,6 +16,64 @@ source("../commonSrc/plot/kalmanFilter/getPlotSmoothedStates.R")
 source("../commonSrc/plot/kalmanFilter/getPlotPercentageExplainedVar.R")
 source("../commonSrc/plot/kalmanFilter/getPlotLogLik.R")
 
+plotAllRFsAllNeurons <- function(Z, B, C, D, stateInputMemorySamples, obsInputMemorySamples, stateInputMemoryToPlotSamples, sRate, figFilenamePattern, estNumber, xlab="Delay (sec)", ylab="Value") {
+    if(stateInputMemorySamples!=0) {
+        stop(sprintf("At the moment only stateInputMemorySamples=0 is supported, but you provided stateInputMemorySamples=%d", stateInputMemorySamples))
+    }
+    if(is.nan(obsInputMemorySamples)) {
+        stop("obsInputMemorySamples should be greater or equal than zero")
+    }
+    Cvg <- C[,1]
+    Cvn <- C[,2]
+    Clg <- C[,3]
+    Cln <- C[,4]
+    ZBCvg <- matrix(NA, nrow=nrow(Z), ncol=stateInputMemoryToPlotSamples+1)
+    ZBCvn <- matrix(NA, nrow=nrow(Z), ncol=stateInputMemoryToPlotSamples+1)
+    ZBClg <- matrix(NA, nrow=nrow(Z), ncol=stateInputMemoryToPlotSamples+1)
+    ZBCln <- matrix(NA, nrow=nrow(Z), ncol=stateInputMemoryToPlotSamples+1)
+    Bpow <- diag(rep(1, nrow(B)))
+    for(i in 1:(stateInputMemoryToPlotSamples+1)) {
+        ZBCvg[,i] <- Z%*%Bpow%*%Cvg
+        ZBCvn[,i] <- Z%*%Bpow%*%Cvn
+        ZBClg[,i] <- Z%*%Bpow%*%Clg
+        ZBCln[,i] <- Z%*%Bpow%*%Cln
+        Bpow <- Bpow%*%B
+    }
+    DblockSize <- 1+obsInputMemorySamples
+    Doffset <- 0
+    #
+    Dvg <- matrix(D[,Doffset+(1:DblockSize)], ncol=DblockSize)
+    Doffset <- Doffset + DblockSize
+    Dvn <- matrix(D[,Doffset+(1:DblockSize)], ncol=DblockSize)
+    Doffset <- Doffset + DblockSize
+    Dlg <- matrix(D[,Doffset+(1:DblockSize)], ncol=DblockSize)
+    Doffset <- Doffset+DblockSize
+    Dln <- matrix(D[,Doffset+(1:DblockSize)], ncol=DblockSize)
+
+    timeStateInputs <- (0:stateInputMemoryToPlotSamples)/sRate
+    timeObsInputs <- (0:obsInputMemorySamples)/sRate
+    nNeurons <- nrow(Z)
+    for(n in 1:nNeurons) {
+        show(sprintf("Plotting RFs for neuron %d", n))
+        fig <- plot_ly(type='scatter', mode='lines+markers')
+        fig <- fig%>%add_trace(x=timeStateInputs, y=ZBCvg[n,], name="population_vg", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeStateInputs, y=ZBCvn[n,], name="population_vn", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeStateInputs, y=ZBClg[n,], name="population_lg", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeStateInputs, y=ZBCln[n,], name="population_ln", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeObsInputs, y=Dvg[n,], name="neuron_vg", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeObsInputs, y=Dvn[n,], name="neuron_vn", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeObsInputs, y=Dlg[n,], name="neuron_lg", type="scatter", mode="lines+markers")
+        fig <- fig%>%add_trace(x=timeObsInputs, y=Dln[n,], name="neuron_ln", type="scatter", mode="lines+markers")
+        fig <- fig %>% layout(xaxis=list(title=xlab), yaxis=list(title=ylab))
+        pngFilename <- sprintf(figFilenamePattern, estNumber, sprintf("allRFsNeuron%d", n), "png")
+        htmlFilename <- sprintf(figFilenamePattern, estNumber, sprintf("allRFsNeuron%d", n), "html")
+        htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
+        orca(p=fig, file=pngFilename)
+        # print(fig)
+        # browser()
+    }
+}
+
 processAll <- function() {
     DEBUG <- TRUE
     if(!DEBUG) {
@@ -32,7 +90,7 @@ processAll <- function() {
         estMetaDataFilenamePattern <- options$estMetaDataFilenamePattern
         figFilenamePattern <- options$figFilenamePattern
     } else {
-        estNumber <- 53790803
+        estNumber <- 38893684
         estMetaDataFilenamePattern <- "results/%08d_estimation.ini"
         figFilenamePattern <- "figures/%08d_%s.%s"
     }
@@ -56,13 +114,13 @@ processAll <- function() {
     stateInputMemorySamples <- stateInputMemorySecs*sRate
     obsInputMemorySamples <- obsInputMemorySecs*sRate
 
-    kfRes <- filterLDS_SS_withOffsetsAndInputs(y=estRes$sqrtSpikeCounts, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, c=estRes$stateInputs, Q=dsSSM$Q, m0=dsSSM$m0, V0=dsSSM$V0, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, d=estRes$obsInputs, R=dsSSM$R)
+    kfRes <- filterLDS_SS_withOffsetsAndInputs(y=estRes$trainSqrtSpikeCounts, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, c=estRes$stateInputs, Q=dsSSM$Q, m0=dsSSM$m0, V0=dsSSM$V0, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, d=estRes$obsInputs, R=dsSSM$R)
     ksRes <- smoothLDS_SS(B=dsSSM$B, xnn=kfRes$xnn, Vnn=kfRes$Vnn, xnn1=kfRes$xnn1, Vnn1=kfRes$Vnn1, m0=dsSSM$m0, V0=dsSSM$V0)
 
-    sqrtSpikeCounts <- estRes$sqrtSpikeCounts
-    time <- estRes$startTime+(1:ncol(estRes$sqrtSpikeCounts))/estRes$sRate
-    dimObs <- nrow(sqrtSpikeCounts)
-    nObs <- ncol(sqrtSpikeCounts)
+    trainSqrtSpikeCounts <- estRes$trainSqrtSpikeCounts
+    time <- estRes$startTime+(1:ncol(estRes$trainSqrtSpikeCounts))/estRes$sRate
+    dimObs <- nrow(trainSqrtSpikeCounts)
+    nObs <- ncol(trainSqrtSpikeCounts)
 
     data <- get(load(dataFilename))
     minTime <- min(time)
@@ -86,7 +144,7 @@ processAll <- function() {
     laserStimOn <- laserStimOn[toKeepIndices]
     laserStimOff <- laserStimOff[toKeepIndices]
 
-# if(FALSE) {
+if(FALSE) {
     show("Plotting logLik")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "logLik", "html")
@@ -200,7 +258,7 @@ processAll <- function() {
     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
     orca(p=fig, file=pngFilename)
     # print(fig)
-# }
+
     if(!is.nan(obsInputMemorySecs)) {
         show("Plotting D")
         x <- (0:obsInputMemorySamples)/sRate
@@ -243,7 +301,6 @@ processAll <- function() {
         # print(fig)
     }
 
-# if(FALSE) {
     show("Plotting R")
     pngFilename <- sprintf(figFilenamePattern, estNumber, "R", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "R", "html")
@@ -255,7 +312,7 @@ processAll <- function() {
     predStats <- computeOneStepAheadObsPredStats(xtt1=kfRes$xnn1[,1,], Vtt1=kfRes$Vnn1, Z=dsSSM$Z, a=as.vector(dsSSM$a), D=dsSSM$D, R=dsSSM$R, obsInputs=estRes$obsInputs[,1,])
 
     show("Plotting percExpVar")
-    percExpVar <- computePercentageExplainedVar(observations=sqrtSpikeCounts, predictions=predStats$ytt1)
+    percExpVar <- computePercentageExplainedVar(observations=trainSqrtSpikeCounts, predictions=predStats$ytt1)
     pngFilename <- sprintf(figFilenamePattern, estNumber, "percExpVar", "png")
     htmlFilename <- sprintf(figFilenamePattern, estNumber, "percExpVar", "html")
     fig <- getPlotPercentageExplainedVar(percExpVar=percExpVar)
@@ -266,7 +323,7 @@ processAll <- function() {
 #     show("Plotting oneStepAheadForecasts")
 #     pngFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "png")
 #     htmlFilename <- sprintf(figFilenamePattern, estNumber, "oneStepAheadForecasts", "html")
-#     fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
+#     fig <- getPlotOneStepAheadForecasts(time=time, obs=trainSqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff)
 #     htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
 #     orca(p=fig, file=pngFilename)
     # print(fig)
@@ -275,7 +332,7 @@ processAll <- function() {
         show(sprintf("Plotting oneStepAheadForecast for neuron %d", i))
         pngFilename <- sprintf(figFilenamePattern, estNumber, sprintf("oneStepAheadForecastsNeuron%d", i), "png")
         htmlFilename <- sprintf(figFilenamePattern, estNumber, sprintf("oneStepAheadForecastsNeuron%d", i), "html")
-        fig <- getPlotOneStepAheadForecasts(time=time, obs=sqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, obsToPlot=c(i))
+        fig <- getPlotOneStepAheadForecasts(time=time, obs=trainSqrtSpikeCounts, ytt1=predStats$ytt1, Wtt1=predStats$Wtt1, goStimOn=goStimOn, goStimOff=goStimOff, nogoStimOn=nogoStimOn, nogoStimOff=nogoStimOff, laserStimOn=laserStimOn, laserStimOff=laserStimOff, obsToPlot=c(i))
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -298,7 +355,8 @@ processAll <- function() {
         orca(p=fig, file=pngFilename)
         # print(fig)
     }
-# }
+}
+    plotAllRFsAllNeurons(Z=dsSSM$Z, B=dsSSM$B, C=dsSSM$C, D=dsSSM$D, stateInputMemorySamples=stateInputMemorySamples, obsInputMemorySamples=obsInputMemorySamples, stateInputMemoryToPlotSamples=obsInputMemorySamples, sRate=sRate, figFilenamePattern=figFilenamePattern, estNumber=estNumber)
 
     browser()
 }
