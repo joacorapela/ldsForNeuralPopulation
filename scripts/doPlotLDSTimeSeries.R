@@ -65,9 +65,9 @@ processAll <- function() {
     lmShaft1NeuronToPlot <- 5
     lmShaft2NeuronToPlot <- 4
     sRate <- 30000
-    startTimeToPlot <- 180
+    startTimeToPlot <- 1980
     # startTimeToPlot <- 50*60
-    plotDuration <- 180
+    plotDuration <- 1000
     endTimeToPlot <- startTimeToPlot+plotDuration
     timeSeriesFilename <- "results/task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_timeSeries.RData"
     figFilenamePattern <- "figures/task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_%sShaft%dNeuron%d_start%.02fsec_end%.02fsec.%s"
