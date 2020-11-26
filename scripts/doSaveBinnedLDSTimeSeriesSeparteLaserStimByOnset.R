@@ -21,11 +21,15 @@ getBinnedStimulus <- function(stimOnSamples, stimOffSamples, breaks) {
 }
 
 processAll <- function() {
+DEBUG <- TRUE
+if(!DEBUG) {
     parser <- OptionParser(usage = "%prog configFilename")
     parseRes <- parse_args(parser, positional_arguments=1)
     arguments <- parseRes$args
     configFilename <- arguments[[1]]
-
+} else {
+    configFilename <- "data/binLDStimeSeries.ini"
+}
     config <- read.ini(configFilename)
 
     sRate <- as.numeric(config$config_params$sRate)
@@ -82,6 +86,8 @@ processAll <- function() {
     goTrialIndices <- loadRes[["gotrialind"]][,1]
     nogoTrialIndices <- loadRes[["nogotrialind"]][,1]
     laserDelays <- loadRes[["LaserDelay"]][1,]/1000 #laser delays are in ms and I want them in sec
+
+browser()
 
     goStimBinned <- getBinnedStimulus(stimOnSamples=stimOnSamples[goTrialIndices], stimOffSamples=stimOffSamples[goTrialIndices], breaks=breaks)
     nogoStimBinned <- getBinnedStimulus(stimOnSamples=stimOnSamples[nogoTrialIndices], stimOffSamples=stimOffSamples[nogoTrialIndices], breaks=breaks)
