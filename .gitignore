@@ -25,3 +25,5 @@ scripts/old/
 scripts/lessons/
 scripts/slurmOutputs/*
 !scripts/slurmOutputs/.gitkeep
+scripts/doAnalyze_DSSSM_v1Shaft1ErrorJobs.csh
+scripts/errorJobs.txt
