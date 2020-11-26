@@ -16,8 +16,11 @@ processAll <- function() {
 DEBUG <- FALSE
 if(!DEBUG) {
     option_list <- list( 
+        make_option(c("-a", "--analysisStartTimeSecs"), type="double", default=0, help="Analysis start time (sec)"),
+        make_option(c("-t", "--trainDurSecs"), type="double", default=180, help="Duration of the data train segment (sec)"),
+        make_option(c("-v", "--validationDurSecs"), type="double", default=60, help="Duration of the data validation segment (sec)"),
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
-        make_option(c("-s", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
+        make_option(c("-m", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
         make_option(c("-o", "--obsInputMemorySecs"), type="double", default=0.6, help="Observations input memory (sec)"),
         make_option(c("-i", "--initialCondMethod"), type="character", default="FA", help="Initial conditions method (FA: factor analysis; PPCA: probabilisitc PCA"),
         make_option(c("-n", "--nStartFA"), type="integer", default=5, help="Number of start values for factor analysis")
@@ -26,6 +29,10 @@ if(!DEBUG) {
     parseRes <- parse_args(parser, positional_arguments=2)
     arguments <- parseRes$args
     options <- parseRes$options
+
+    analysisStartTimeSecs <- options$analysisStartTimeSecs
+    trainDurSecs <- options$trainDurSecs
+    validationDurSecs <- options$validationDurSecs
 
     stateDim <- options$stateDim
     stateInputMemorySecs <- options$stateInputMemorySecs
@@ -44,15 +51,18 @@ if(!DEBUG) {
 
 } else {
     # begin uncomment to debug
-    stateDim <- 17
-    stateInputMemorySecs <- 0.1
-    obsInputMemorySecs <- 0.1
+    analysisStartTimeSecs <- 180
+    trainDurSecs <- 180
+    validationDurSecs <- 60
+    stateDim <- 5
+    stateInputMemorySecs <- 0.0
+    obsInputMemorySecs <- 0.4
     initialCondMethod <- "PPCA"
-    estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start180_dur600.ini"
-    modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start180_dur600.csv"
+    estConfigFilename <- "data/lmShaftAll_estimation_DSSSM.ini"
+    modelsLogFilename <- "log/lmShaftAllModels_DSSSM.csv"
     # estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start2580_dur600.ini"
     # modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start2580_dur600.csv"
-    nStartFA <- 5
+    # nStartFA <- 5
     # end uncomment to debug
 }
 
@@ -64,10 +74,7 @@ if(!DEBUG) {
     covsConstraints <- list(V0=initialStateCovType, Q=stateCovType, R=obsCovType)
 
     region <- estConfig$control_variables$region
-    shaft <- as.numeric(estConfig$control_variables$shaft)
-    analysisStartTimeSecs <- as.double(estConfig$control_variables$analysisStartTimeSecs)
-    trainDurSecs <- as.double(estConfig$control_variables$trainDurSecs)
-    validationDurSecs <- as.double(estConfig$control_variables$validationDurSecs)
+    shafts <- eval(parse(text=estConfig$control_variables$shafts))
 
     tol <- as.double(estConfig$EM$tol)
     maxIter <- as.numeric(estConfig$EM$maxIter)
@@ -82,9 +89,16 @@ if(!DEBUG) {
     trainSamples <- (analysisStartTimeSecs*sRate)+(1:(trainDurSecs*sRate))
     validationSamples <- max(trainSamples)+(1:(validationDurSecs*sRate))
 
-    trainSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,trainSamples]
+    spikeCounts <- c()
+    for(shaft in shafts) {
+        shaftSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]]
+        nNeurons <- nrow(shaftSpikeCounts)
+        rownames(shaftSpikeCounts) <- sprintf("shaft%02dNeuron%03d", rep(shaft, times=nNeurons), 1:nNeurons)
+        spikeCounts <- rbind(spikeCounts, shaftSpikeCounts)
+    }
+    trainSpikeCounts <- spikeCounts[,trainSamples]
     trainSqrtSpikeCounts <- sqrt(trainSpikeCounts)
-    validationSpikeCounts <- data[[sprintf("%sShaft%dSpikeCounts", region, shaft)]][,validationSamples]
+    validationSpikeCounts <- spikeCounts[,validationSamples]
     validationSqrtSpikeCounts <- sqrt(validationSpikeCounts)
 
     trainGoStim <- data$goStim[trainSamples]
@@ -155,7 +169,7 @@ if(!DEBUG) {
 
     AIC <- computeAIC(dsSSM=dsSSM)
     cvLogLike <- filterLDS_SS_withOffsetsAndInputs(y=validationSpikeCounts, c=validationStateInputs, d=validationObsInputs, B=dsSSM$B, u=dsSSM$u, C=dsSSM$C, Q=dsSSM$Q, m0=dsSSM$xNN, V0=dsSSM$VNN, Z=dsSSM$Z, a=dsSSM$a, D=dsSSM$D, R=dsSSM$R)$logLike
-    logMessage <- sprintf("%d, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
+    logMessage <- sprintf("%d, %f, %f, %f, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
     show(logMessage)
     cat(logMessage, file=modelsLogFilename, append=TRUE)
     metaData[["estimation_summary"]] <- list(logLik=dsSSM$logLik[length(dsSSM$logLik)], AIC=AIC, cvLogLike=cvLogLike, elapsedTime=elapsedTime)
