@@ -58,8 +58,8 @@ if(!DEBUG) {
     stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.4
     initialCondMethod <- "PPCA"
-    estConfigFilename <- "data/lmShaftAll_estimation_DSSSM.ini"
-    modelsLogFilename <- "log/lmShaftAllModels_DSSSM.csv"
+    estConfigFilename <- "data/VL61/v1Shaft1_estimation_DSSSM.ini"
+    modelsLogFilename <- "log/VL61/v1Shaft1Models_DSSSM.csv"
     # estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start2580_dur600.ini"
     # modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start2580_dur600.csv"
     # nStartFA <- 5

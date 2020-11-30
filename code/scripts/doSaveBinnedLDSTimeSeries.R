@@ -21,10 +21,15 @@ getBinnedStimulus <- function(stimOnSamples, stimOffSamples, breaks) {
 }
 
 processAll <- function() {
-    parser <- OptionParser(usage = "%prog configFilename")
-    parseRes <- parse_args(parser, positional_arguments=1)
-    arguments <- parseRes$args
-    configFilename <- arguments[[1]]
+    DEBUG <- TRUE
+    if(!DEBUG) {
+        parser <- OptionParser(usage = "%prog configFilename")
+        parseRes <- parse_args(parser, positional_arguments=1)
+        arguments <- parseRes$args
+        configFilename <- arguments[[1]]
+    } else {
+        configFilename <- "data/VL61/binLDStimeSeries.ini"
+    }
 
     config <- read.ini(configFilename)
 
