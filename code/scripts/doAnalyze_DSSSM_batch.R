@@ -11,6 +11,28 @@ source("../commonSrc/stats/kalmanFilter/computeAIC.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondFA.R")
 source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
 
+modelInLog <- function(modelsLogFilename, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod) {
+    # logMessage <- sprintf("%d, %f, %f, %f, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
+    lines <- readLines(con=modelsLogFilename)
+    tokens <- strsplit(lines, ",")
+    found <- FALSE
+    i <- 1
+    while(i<=length(tokens) && !found) {
+        tAnalysisStartTimeSecs <- as.numeric(tokens[[i]][2])
+        tTrainDurSecs <- as.numeric(tokens[[i]][3])
+        tValidationDurSecs <- as.numeric(tokens[[i]][4])
+        tStateDim <- as.numeric(tokens[[i]][5])
+        tStateInputMemSecs <- as.numeric(tokens[[i]][6])
+        tObsInpuMemSecs <- as.numeric(tokens[[i]][7])
+        tInitialCondMethod <- gsub(" ", "", tokens[[i]][8], fixed=TRUE)
+        if(analysisStartTimeSecs==tAnalysisStartTimeSecs && trainDurSecs==tTrainDurSecs && validationDurSecs==tValidationDurSecs && stateDim==tStateDim && stateInputMemorySecs==tStateInputMemSecs && obsInputMemorySecs==tObsInpuMemSecs && initialCondMethod==tInitialCondMethod) {
+            found <- TRUE
+        }
+        i <- i+1
+    }
+    return(found)
+}
+
 processAll <- function() {
 # DEBUG <- TRUE
 DEBUG <- FALSE
@@ -23,7 +45,8 @@ if(!DEBUG) {
         make_option(c("-m", "--stateInputMemorySecs"), type="double", default=0.6, help="State input memory (sec)"),
         make_option(c("-o", "--obsInputMemorySecs"), type="double", default=0.6, help="Observations input memory (sec)"),
         make_option(c("-i", "--initialCondMethod"), type="character", default="FA", help="Initial conditions method (FA: factor analysis; PPCA: probabilisitc PCA"),
-        make_option(c("-n", "--nStartFA"), type="integer", default=5, help="Number of start values for factor analysis")
+        make_option(c("-n", "--nStartFA"), type="integer", default=5, help="Number of start values for factor analysis"),
+        make_option(c("-c", "--checkModelsLogFilename"), action="store_true", default=FALSE, help="Check models log filename and do not estimate a model if it has been previously estimated")
     )
     parser <- OptionParser(usage = "%prog [options] configFilename modelsLogFilename", option_list=option_list)
     parseRes <- parse_args(parser, positional_arguments=2)
@@ -45,26 +68,30 @@ if(!DEBUG) {
     }
     initialCondMethod <- options$initialCondMethod
     nStartFA <- options$nStartFA
+    checkModelsLogFilename <- options$checkModelsLogFilename
 
     estConfigFilename <- arguments[[1]]
     modelsLogFilename <- arguments[[2]]
 
 } else {
-    # begin uncomment to debug
+    # 46390734, 180.000000, 180.000000, 60.000000, 5, 0.000000, 0.400000, PPCA, -10923.367918, 23110.735836, -3692.318680, 141.450000
     analysisStartTimeSecs <- 180
     trainDurSecs <- 180
     validationDurSecs <- 60
-    stateDim <- 5
+    stateDim <- 50
     stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.4
     initialCondMethod <- "PPCA"
-    estConfigFilename <- "data/VL61/v1Shaft1_estimation_DSSSM.ini"
-    modelsLogFilename <- "log/VL61/v1Shaft1Models_DSSSM.csv"
+    estConfigFilename <- "../../data/VL61/v1Shaft1_estimation_DSSSM.ini"
+    modelsLogFilename <- "../../log/VL61/v1Shaft1Models_DSSSM.csv"
     # estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start2580_dur600.ini"
     # modelsLogFilename <- "log/v1Shaft1Models_DSSSM_start2580_dur600.csv"
-    # nStartFA <- 5
-    # end uncomment to debug
+    nStartFA <- 5
+    checkModelsLogFilename <- TRUE
 }
+    if(modelInLog(modelsLogFilename=modelsLogFilename, analysisStartTimeSecs=analysisStartTimeSecs, trainDurSecs=trainDurSecs, validationDurSecs=validationDurSecs, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, initialCondMethod=initialCondMethod)) {
+           return()
+    }
 
     estConfig <- read.ini(estConfigFilename)
 
