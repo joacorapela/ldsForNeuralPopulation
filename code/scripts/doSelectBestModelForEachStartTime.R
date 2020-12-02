@@ -19,11 +19,11 @@ processAll <- function() {
         bestModelsFigFilenamePattern <- options$bestModelsFigFilenamePattern
     } else {
         cellName <- "VL61"
-        region <- "lm"
+        region <- "v1"
         shaft <- 1
         modelsLogFilenamePattern <- "../../log/%s/%sShaft%dModels_DSSSM.csv"
-        bestModelsFilenamePattern <- "../../log/%s/%sShaft%d_AIC_bestModelsByStartTime.csv"
-        bestModelsFigFilenamePattern <- "../../figures/%s/%sShaft%d_AIC_bestModelsByStartTime.png"
+        bestModelsFilenamePattern <- "../../results/%s/%sShaft%d_DSSSM_AIC_bestModelsByStartTime.csv"
+        bestModelsFigFilenamePattern <- "../../figures/%s/%sShaft%d_DSSSM_AIC_bestModelsByStartTime.png"
     }
 
     modelsLogFilename <- sprintf(modelsLogFilenamePattern, cellName, region, shaft)
