@@ -18,7 +18,7 @@ processAll <- function() {
     DEBUG <- TRUE
     if(!DEBUG) {
         option_list <- list(
-            make_option(c("-b", "--bestModelsFilenamePattern"), type="character", default="../../log/%s/%sShaft%s_DSSSM_AIC_bestModelsByStartTime.csv", help="Best models filename pattern"),
+            make_option(c("-b", "--bestModelsFilenamePattern"), type="character", default="../../results/%s/%sShaft%s_DSSSM_AIC_bestModelsByStartTime.csv", help="Best models filename pattern"),
             make_option(c("-e", "--estResFilenamePattern"), type="character", default="../../results/%08d_estimation.RData", help="Estimation result filename pattern"),
             make_option(c("-f", "--variabilityFigFilenamePattern"), type="character", default="../../figures/%s/%sShaft%s_DSSSM_%s_neuron%d.%s", help="Figure filename pattern"),
             make_option(c("-s", "--sRate"), type="int", default=10, help="Sample rate"),
@@ -36,9 +36,9 @@ processAll <- function() {
         variabilityFigFilenamePattern <- options$variabilityFigFilenamePattern
     } else {
         cellName <- "VL61"
-        region <- "lm"
+        region <- "v1"
         shaft <- "1"
-        bestModelsFilenamePattern <- "../../log/%s/%sShaft%s_DSSSM_AIC_bestModelsByStartTime.csv"
+        bestModelsFilenamePattern <- "../../results/%s/%sShaft%s_DSSSM_AIC_bestModelsByStartTime.csv"
         estResFilenamePattern <- "../../results/%s/%08d_estimation.RData"
         variabilityFigFilenamePattern <- "../../figures/%s/%sShaft%s_DSSSM_%s_neuron%d.%s"
     }
