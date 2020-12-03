@@ -104,7 +104,7 @@ processAll <- function() {
     dataFilename <- estConfig$filenames$dataFilename
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
 
-    estResFilename <- sprintf(estResFilenamePattern, estNumber)
+    estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
     estRes <- get(load(estResFilename))
     stateDim <- estRes$stateDim
     obsInputMemorySecs <- estRes$obsInputMemorySecs
