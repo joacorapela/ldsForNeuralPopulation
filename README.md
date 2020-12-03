@@ -14,6 +14,44 @@
 
 ## Data preprocessing
 
+1. Create directories and files for the analysis of a new mouse by running `./createMouseDirsAndFiles.csh <mouseName>`, where `<mouseName>` stands for the name of a mouse (e.g., MPV17).
+
+2. Copy the Matlab mouse data file to `data/<mouseName>`. I assume the mouse data filename is `<dataFilenameInfix>.mat`. We will use `<dataFilenameInfix>` in step 5 below.
+
+3. `cd code/scripts`.
+
+4. `matlab`.
+
+5. In the Matlab console type `saveDataSubset(<mouseName>, <dataFilenameInfix>)` to save the data in .RData format.
+
+6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` set the entries:
+    - `matlabDataFilename` to `<dataFilenameInfix>_V6.mat`.
+    - `saveFilename` to `<dataFilenameInfix>.RData`.
+
+7. `Rscript doSaveBinnedLDSTimeSeries.R ../../data/<mouseName>/binLDStimeSeries.ini`. This script will bin spike times.
+
+8. `cd <mouseName>`
+
+Now we will perform the model selection to select the optimal state dimension, memory for the state history and memory for the observations history. We are going to to this in two steps. In the first step we will find the optimal state dimension and in the second one the optimal state and observation memories.
+
+In the first step we are going select an optimal state dimension. We will generate a list of model parameters by fixing the state and osbservation memories to reasonable values and varying the state dimension. Then we are going to estimate models corresponding to this list of parameters. Then we will estimate as many models as parameters in this list. And finally we will select the state dimension of the model achieving the minimal Akaike Information Criterion.
+
+9. To generate the list of model parameters: edit `./buildModelSelectionFile_selectStateDim.csh` and set the array `stateDims` to the state dimensions of the models to estimate. 
+
+10. To estimate the models: `./doAnalyze_DSSSM_v1Shaft1.csh`. 
+
+This script will submit to the cluster as many jobs as parameters in the previous list. It will log in ../../log/{$cellName}/{$region}Shaft{$shaftNro}Models_DSSSM.csv the result of each model estimate in the format
+
+'<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>'
+
+11. To select the optimal state dimension: select from the log file ../../log/{$cellName}/{$region}Shaft{$shaftNro}Models_DSSSM.csv the state dimension (column 5) corresponding to the model with smaller AIC (column 10)
+
+In the second step of the model selection we are going select optimal state and observation memories. We will generate a list of model parameters by fixing the state dimension to that found in the previous state and varying the osbservation memory and then proceed as in the previous steps.
+
+12. 
+ to reasonable values and varying the state dimension. Then we are going to estimate models corresponding to this list of parameters. Then we will estimate as many models as parameters in this list. And finally we will select the state dimension of the model achieving the minimal Akaike Information Criterion.
+
+
 1. Save Matlab data in version 6 format with a specific naming convention. See data/doSaveMatlabDataSubset.m (e.g., save this file in
    scripts/results/matlabData_V6.mat)
 
