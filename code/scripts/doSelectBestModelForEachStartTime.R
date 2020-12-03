@@ -6,19 +6,19 @@ processAll <- function() {
             make_option(c("-f", "--bestModelsFilenamePattern"), type="character", default="../../log/%s/%sShaft%d_DSSSM_AIC_bestModelsByStartTime.csv", help="Best models filename pattern"),
             make_option(c("-f", "--bestModelsFigFilenamePattern"), type="character", default="../../figures/%s/%sShaft%d_DSSSM_AIC_bestModelsByStartTime.png", help="Best models figure filename pattern"),
         )
-        parser <- OptionParser(usage = "%prog [options] cellName region shaft", option_list=option_list)
+        parser <- OptionParser(usage = "%prog [options] mouseName region shaft", option_list=option_list)
         parseRes <- parse_args(parser, positional_arguments=3)
         options <- parseRes$options
         arguments <- parseRes$args
 
-        cellName <- arguments[1]
+        mouseName <- arguments[1]
         region <- arguments[2]
         shaft <- as.numeric(arguments[3])
         modelsLogFilenamePattern <- options$modelsLogFilenamePattern
         bestModelsFilenamePattern <- options$bestModelsFilenamePattern
         bestModelsFigFilenamePattern <- options$bestModelsFigFilenamePattern
     } else {
-        cellName <- "VL61"
+        mouseName <- "VL61"
         region <- "v1"
         shaft <- 1
         modelsLogFilenamePattern <- "../../log/%s/%sShaft%dModels_DSSSM.csv"
@@ -26,9 +26,9 @@ processAll <- function() {
         bestModelsFigFilenamePattern <- "../../figures/%s/%sShaft%d_DSSSM_AIC_bestModelsByStartTime.png"
     }
 
-    modelsLogFilename <- sprintf(modelsLogFilenamePattern, cellName, region, shaft)
-    bestModelsFilename <- sprintf(bestModelsFilenamePattern, cellName, region, shaft)
-    bestModelsFigFilename <- sprintf(bestModelsFigFilenamePattern, cellName, region, shaft)
+    modelsLogFilename <- sprintf(modelsLogFilenamePattern, mouseName, region, shaft)
+    bestModelsFilename <- sprintf(bestModelsFilenamePattern, mouseName, region, shaft)
+    bestModelsFigFilename <- sprintf(bestModelsFigFilenamePattern, mouseName, region, shaft)
 
     modelsLog <- read.table(modelsLogFilename, sep=",")
     colnames(modelsLog) <- c("estNumber", "analysisStartTimeSecs", "trainDurSecs", "validationDurSecs", "stateDim", "stateInputMemorySecs", "obsInputMemorySecs", "initialCondMethod", "logLike", "AIC", "cvLogLike", "elapsedTime")
