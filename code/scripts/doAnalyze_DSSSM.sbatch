@@ -11,7 +11,7 @@ set stateInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $5}
 set obsInputMemorySecs=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $6}' $modelSelectionFile`)
 set initialCondMethod=(`awk -v myNR=$SLURM_ARRAY_TASK_ID 'NR==myNR {print $7}' $modelSelectionFile`)
 
-Rscript doAnalyze_DSSSM_batch.R --analysisStartTimeSecs=$analysisStartTimeSecs --trainDurSecs=$trainDurSecs --validationDurSecs=$validationDurSecs --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod --checkModelsLogFilename $configFilename $modelsLogFilename
+Rscript doAnalyze_DSSSM_batch.R --analysisStartTimeSecs=$analysisStartTimeSecs --trainDurSecs=$trainDurSecs --validationDurSecs=$validationDurSecs --stateDim=$stateDim --stateInputMemorySecs=$stateInputMemorySecs --obsInputMemorySecs=$obsInputMemorySecs --initialCondMethod=$initialCondMethod --checkModelsLogFilename $binConfigFilename $estConfigFilename $modelsLogFilename
 
 echo "Done with task " $SLURM_ARRAY_TASK_ID " on " $SLURMD_NODENAME
 
