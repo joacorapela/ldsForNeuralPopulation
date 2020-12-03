@@ -13,8 +13,7 @@ meetings/
 notes/
 communications/
 reports/
-code/scripts/MPV18_2/
-code/scripts/VL61/
+code/scripts/*/
 results/*
 !results/exampleMouse
 !results/exampleMouse/.gitkeep
