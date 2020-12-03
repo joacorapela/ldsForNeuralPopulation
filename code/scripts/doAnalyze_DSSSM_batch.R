@@ -13,6 +13,10 @@ source("../commonSrc/stats/kalmanFilter/estimateKFInitialCondPPCA.R")
 
 modelInLog <- function(modelsLogFilename, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod) {
     # logMessage <- sprintf("%d, %f, %f, %f, %d, %f, %f, %s, %f, %f, %f, %f\n", estNumber, analysisStartTimeSecs, trainDurSecs, validationDurSecs, stateDim, stateInputMemorySecs, obsInputMemorySecs, initialCondMethod, dsSSM$logLik[length(dsSSM$logLik)], AIC, cvLogLike, elapsedTime)
+    if(!files.exists(modelsLogFilename)) {
+           return FALSE
+    }
+
     lines <- readLines(con=modelsLogFilename)
     tokens <- strsplit(lines, ",")
     found <- FALSE
