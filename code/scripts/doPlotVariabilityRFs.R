@@ -13,8 +13,6 @@ getPlotMatrixRows <- function(x, aMatrix, legends, xlab="Delay (sec)", ylab="Val
 }
 
 processAll <- function() {
-    sRate <- 10
-
     DEBUG <- TRUE
     if(!DEBUG) {
         option_list <- list(
@@ -22,27 +20,32 @@ processAll <- function() {
             make_option(c("-e", "--estResFilenamePattern"), type="character", default="../../results/%08d_estimation.RData", help="Estimation result filename pattern"),
             make_option(c("-f", "--variabilityFigFilenamePattern"), type="character", default="../../figures/%s/%sShaft%s_DSSSM_%s_neuron%d.%s", help="Figure filename pattern"),
             make_option(c("-s", "--sRate"), type="int", default=10, help="Sample rate"),
+            make_option(c("-s", "--stateInputMemoryToPlotSamples"), type="int", default=6, help="State input memory to plot (in samples)"),
         )
-        parser <- OptionParser(usage = "%prog [options] cellName region shaft", option_list=option_list)
+        parser <- OptionParser(usage = "%prog [options] mouseName region shaft", option_list=option_list)
         parseRes <- parse_args(parser, positional_arguments=3)
         options <- parseRes$options
         arguments <- parseRes$args
 
-        cellName <- arguments[1]
+        mouseName <- arguments[1]
         region <- arguments[2]
         shaft <- arguments[3]
         bestModelsFilenamePattern <- options$bestModelsFilenamePattern
         estResFilenamePattern <- options$estResFilenamePattern
         variabilityFigFilenamePattern <- options$variabilityFigFilenamePattern
+        sRate <- options$sRate
+        stateInputMemoryToPlotSamples <- options$stateInputMemoryToPlotSamples
     } else {
-        cellName <- "VL61"
+        mouseName <- "VL61"
         region <- "v1"
         shaft <- "1"
         bestModelsFilenamePattern <- "../../results/%s/%sShaft%s_DSSSM_AIC_bestModelsByStartTime.csv"
         estResFilenamePattern <- "../../results/%s/%08d_estimation.RData"
         variabilityFigFilenamePattern <- "../../figures/%s/%sShaft%s_DSSSM_%s_neuron%d.%s"
+        sRate <- 10
+        stateInputMemoryToPlotSamples <- 6
     }
-    bestModelsFilename <- sprintf(bestModelsFilenamePattern, cellName, region, shaft)
+    bestModelsFilename <- sprintf(bestModelsFilenamePattern, mouseName, region, shaft)
     bestModels <- read.table(file=bestModelsFilename, header=TRUE)
     sortRes <- sort(bestModels$analysisStartTimeSecs, index.return=TRUE)
     sortedBestModels <- bestModels[sortRes$ix,]
@@ -51,7 +54,6 @@ processAll <- function() {
     if(stateInputMemorySamples!=0) {
         stop("Currently only stateInputMemorySamples=0 is supported")
     }
-    stateInputMemoryToPlotSamples <- obsInputMemorySamples
     xD <- (0:obsInputMemorySamples)/sRate
     xC <- (0:stateInputMemoryToPlotSamples)/sRate
     DblockSize <- 1+obsInputMemorySamples
@@ -60,21 +62,21 @@ processAll <- function() {
     legendPattern <- "start %d sec"
 
     estNumber <- sortedBestModels[1, "estNumber"]
-    estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+    estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
     estRes <- get(load(estResFilename))
     dsSSM <- estRes$dsSSM
     nNeurons <- nrow(dsSSM$Z)
 
     for(n in 1:nNeurons) {
 
-if(TRUE) {
+if(FALSE) {
         # start DVisualStimGo
         Doffset <- 0
         figDesc <- "DVisualStimGo"
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -84,8 +86,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xD, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -97,7 +99,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -107,8 +109,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xD, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -120,7 +122,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -130,8 +132,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xD, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -143,7 +145,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -153,8 +155,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xD, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -166,7 +168,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -180,8 +182,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xC, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -193,7 +195,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -207,8 +209,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xC, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -220,7 +222,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -234,8 +236,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xC, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
@@ -247,7 +249,7 @@ if(TRUE) {
         show(sprintf("%s, neuron %d", figDesc, n))
         for(i in 1:nrow(sortedBestModels)) {
             estNumber <- sortedBestModels[i, "estNumber"]
-            estResFilename <- sprintf(estResFilenamePattern, cellName, estNumber)
+            estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
             estRes <- get(load(estResFilename))
             dsSSM <- estRes$dsSSM
             if(i==1) {
@@ -261,8 +263,8 @@ if(TRUE) {
             legends[i] <- sprintf(legendPattern, sortedBestModels[i, "analysisStartTimeSecs"])
         }
         fig <- getPlotMatrixRows(x=xC, aMatrix=rfs, legends=legends)
-        htmlFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "html")
-        pngFilename <- sprintf(variabilityFigFilenamePattern, cellName, region, shaft, figDesc, n, "png")
+        htmlFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "html")
+        pngFilename <- sprintf(variabilityFigFilenamePattern, mouseName, region, shaft, figDesc, n, "png")
         htmlwidgets::saveWidget(as_widget(fig), file.path(normalizePath(dirname(htmlFilename)), basename(htmlFilename)))
         orca(p=fig, file=pngFilename)
         # print(fig)
