@@ -80,6 +80,7 @@ processAll <- function() {
     if(!DEBUG) {
         option_list <- list( 
             make_option(c("-m", "--estMetaDataFilenamePattern"), type="character", default="../../results/%s/%08d_estimation.ini", help="Estimation metadata filename pattern"),
+            make_option(c("-m", "--timeSeriesFilenamePattern"), type="character", default="../../data/%s/binLDStimeSeries.ini", help="Time series filename pattern"),
             make_option(c("-f", "--figFilenamePattern"), type="character", default="../../figures/%s/%08d_%s.%s", help="Figure filename pattern")
         )
         parser <- OptionParser(usage = "%prog [options] mouseName estNumber", option_list=option_list)
@@ -90,18 +91,22 @@ processAll <- function() {
         mouseName <- arguments[1]
         estNumber <- as.numeric(arguments[2])
         estMetaDataFilenamePattern <- options$estMetaDataFilenamePattern
+        timeSeriesFilenamePattern <- options$timeSeriesFilenamePattern
         figFilenamePattern <- options$figFilenamePattern
     } else {
         mouseName <- "MPV18_2"
         estNumber <- 38893684
         estMetaDataFilenamePattern <- "../../results/%s/%08d_estimation.ini"
+        timeSeriesFilenamePattern <- "../../data/%s/binLDStimeSeries.ini"
         figFilenamePattern <- "../../figures/%s/%08d_%s.%s"
     }
     estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, mouseName, estNumber)
     estMetaData <- read.ini(filepath=estMetaDataFilename)
     estConfigFilename <- estMetaData$estimation_config_info$estConfigFilename
     estConfig <- read.ini(estConfigFilename)
-    dataFilename <- estConfig$filenames$dataFilename
+    timeSeriesFilename <- sprintf(timeSeriesFilenamePattern, mouseName)
+    timeSeriesConfig <- read.ini(timeSeriesFilename)
+    dataFilename <- timeSeriesConfig$filenames$saveFilename
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
 
     estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
