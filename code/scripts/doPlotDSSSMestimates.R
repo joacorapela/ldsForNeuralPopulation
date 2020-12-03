@@ -94,8 +94,8 @@ processAll <- function() {
     } else {
         mouseName <- "MPV18_2"
         estNumber <- 38893684
-        estMetaDataFilenamePattern <- "../../%s/results/%08d_estimation.ini"
-        figFilenamePattern <- "../../%s/figures/%08d_%s.%s"
+        estMetaDataFilenamePattern <- "../../results/%s/%08d_estimation.ini"
+        figFilenamePattern <- "../../figures/%s/%08d_%s.%s"
     }
     estMetaDataFilename <- sprintf(estMetaDataFilenamePattern, mouseName, estNumber)
     estMetaData <- read.ini(filepath=estMetaDataFilename)
