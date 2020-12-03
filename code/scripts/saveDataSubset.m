@@ -1,7 +1,7 @@
 function saveDataSubset(mouseName, dataFilenameInfix)
 
     inputFilename = sprintf('../../data/%s/%s.mat', mouseName, dataFilenameInfix);
-    outputFilename = sprintf('../../data/%s/%s_V6.mat', mouseName, dataFilenameInfix);
+    outputFilename = sprintf('../../data/%s/%s_subset_V6.mat', mouseName, dataFilenameInfix);
 
     load(inputFilename)
 
