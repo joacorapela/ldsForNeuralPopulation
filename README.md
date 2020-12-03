@@ -51,9 +51,9 @@ where initialCondMethod could be FA (factor analysis) or PPCA (probabilistic pri
 
    [1] "1045650, 180.000000, 180.000000, 60.000000, 9, 0.000000, 0.800000, PPCA, -12016.202005, 25842.404010, -4667.808143, 65.294000\n"
 
-    indicating that the random number associated with the estimated model was 1045650, the models was estimated from a subset of spikes starting at time 180 sec, it was trained using 180 sec of neurla activity, it was validated using 60 sec of neural activity, stateDim=9, stateInputMemorySecs=0, obsInputMemorySecs=0.6, initialCondMethod=PPCA, log likelihood=-12016.2,, Akaike Information Criterion=25842.404010, cross-validated Akaike Information Criterion=-4667.808143, estimation elapsed time=65.3 secs. 
+indicating that the random number associated with the estimated model was 1045650, the models was estimated from a subset of spikes starting at time 180 sec, it was trained using 180 sec of neurla activity, it was validated using 60 sec of neural activity, stateDim=9, stateInputMemorySecs=0, obsInputMemorySecs=0.6, initialCondMethod=PPCA, log likelihood=-12016.2, Akaike Information Criterion=25842.404010, cross-validated Akaike Information Criterion=-4667.808143, estimation elapsed time=65.3 secs. 
 
-    This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
+This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
 ## Plotting model parameters
 
