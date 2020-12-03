@@ -48,8 +48,8 @@ if(!DEBUG) {
         make_option(c("-n", "--nStartFA"), type="integer", default=5, help="Number of start values for factor analysis"),
         make_option(c("-c", "--checkModelsLogFilename"), action="store_true", default=FALSE, help="Check models log filename and do not estimate a model if it has been previously estimated")
     )
-    parser <- OptionParser(usage = "%prog [options] configFilename modelsLogFilename", option_list=option_list)
-    parseRes <- parse_args(parser, positional_arguments=2)
+    parser <- OptionParser(usage = "%prog [options] binConfigFilename estConfigFilename modelsLogFilename", option_list=option_list)
+    parseRes <- parse_args(parser, positional_arguments=3)
     arguments <- parseRes$args
     options <- parseRes$options
 
@@ -70,8 +70,9 @@ if(!DEBUG) {
     nStartFA <- options$nStartFA
     checkModelsLogFilename <- options$checkModelsLogFilename
 
-    estConfigFilename <- arguments[[1]]
-    modelsLogFilename <- arguments[[2]]
+    binConfigFilename <- arguments[[1]]
+    estConfigFilename <- arguments[[2]]
+    modelsLogFilename <- arguments[[3]]
 
 } else {
     # 46390734, 180.000000, 180.000000, 60.000000, 5, 0.000000, 0.400000, PPCA, -10923.367918, 23110.735836, -3692.318680, 141.450000
@@ -82,6 +83,7 @@ if(!DEBUG) {
     stateInputMemorySecs <- 0.0
     obsInputMemorySecs <- 0.4
     initialCondMethod <- "PPCA"
+    binConfigFilename <- "../../data/VL61/binLDStimeSeries.ini"
     estConfigFilename <- "../../data/VL61/v1Shaft1_estimation_DSSSM.ini"
     modelsLogFilename <- "../../log/VL61/v1Shaft1Models_DSSSM.csv"
     # estConfigFilename <- "data/v1Shaft1_estimation_DSSSM_start2580_dur600.ini"
@@ -92,6 +94,9 @@ if(!DEBUG) {
     if(modelInLog(modelsLogFilename=modelsLogFilename, analysisStartTimeSecs=analysisStartTimeSecs, trainDurSecs=trainDurSecs, validationDurSecs=validationDurSecs, stateDim=stateDim, stateInputMemorySecs=stateInputMemorySecs, obsInputMemorySecs=obsInputMemorySecs, initialCondMethod=initialCondMethod)) {
            return()
     }
+
+    binConfig <- read.ini(binConfigFilename)
+    dataFilename <-  binConfig$filenames$saveFilename
 
     estConfig <- read.ini(estConfigFilename)
 
@@ -107,7 +112,6 @@ if(!DEBUG) {
     maxIter <- as.numeric(estConfig$EM$maxIter)
     maxIter <- maxIter+1
 
-    dataFilename <-  estConfig$filenames$dataFilename
     estMetaDataFilenamePattern <- estConfig$filenames$estMetaDataFilenamePattern
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
 
