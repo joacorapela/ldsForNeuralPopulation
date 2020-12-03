@@ -21,17 +21,18 @@ getBinnedStimulus <- function(stimOnSamples, stimOffSamples, breaks) {
 }
 
 processAll <- function() {
-    DEBUG <- TRUE
+    # DEBUG <- TRUE
+    DEBUG <- FALSE
     if(!DEBUG) {
-        parser <- OptionParser(usage = "%prog configFilename")
+        parser <- OptionParser(usage = "%prog iniFilename")
         parseRes <- parse_args(parser, positional_arguments=1)
         arguments <- parseRes$args
-        configFilename <- arguments[[1]]
+        iniFilename <- arguments[[1]]
     } else {
-        configFilename <- "data/VL61/binLDStimeSeries.ini"
+        iniFilename <- "../../data/MPV17/binLDStimeSeries.ini"
     }
 
-    config <- read.ini(configFilename)
+    config <- read.ini(iniFilename)
 
     sRate <- as.numeric(config$config_params$sRate)
     binSizeSecs <- as.numeric(config$config_params$binSizeSecs)
