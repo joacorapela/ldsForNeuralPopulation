@@ -1,6 +1,6 @@
 #!/bin/csh
 
-set filename='../../data/exampleNeuron/v1Shaft1_modelSelection_tmp.txt'
+set filename='../../data/exampleMouse/v1Shaft1_modelSelection_tmp.txt'
 set analysisStartTimeSecs=(0  180  360  540  720  900 1080 1260 1440 1620 1800 1980 2160 2340 2520 2700 2880 3060 3240 3420 3600 3780 3960)
 set trainDurSecs=(180)
 set validationDurSecs=(60)
