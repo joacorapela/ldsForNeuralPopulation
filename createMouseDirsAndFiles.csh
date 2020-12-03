@@ -16,7 +16,7 @@ cp -r code/scripts/exampleMouse code/scripts/{$mouseName}
 sed -i "s/exampleMouse/$mouseName/g" code/scripts/{$mouseName}/*.csh
 
 cp -r data/exampleMouse data/{$mouseName}
-sed -i "s/exampleMouse/$mouseName/g" data/{$mouseName}/*.ini data/{$mouseName}/*.txt
+sed -i "s/exampleMouse/$mouseName/g" data/{$mouseName}/*.ini
 
 done:
  exit 0
