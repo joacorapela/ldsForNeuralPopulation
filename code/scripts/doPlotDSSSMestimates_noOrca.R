@@ -109,7 +109,7 @@ processAll <- function() {
     dataFilename <- timeSeriesConfig$filenames$saveFilename
     estResFilenamePattern <- estConfig$filenames$estResFilenamePattern
 
-    estResFilename <- sprintf(estResFilenamePattern, mouseName, estNumber)
+    estResFilename <- sprintf(estResFilenamePattern, estNumber)
     estRes <- get(load(estResFilename))
     stateDim <- estRes$stateDim
     obsInputMemorySecs <- estRes$obsInputMemorySecs
