@@ -43,7 +43,7 @@ where initialCondMethod could be FA (factor analysis) or PPCA (probabilistic pri
 '<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>'
  (this information includes the random number associated to the estimated model, as well as the log-likelihood and Akaike Information Criterion corresponding to the estimated model).
 
-   For example: `Rscript doAnalyze_MARSS_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
+   For example: `Rscript doAnalyze_DSSSM_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
    This script will print on the screen something like:
 
