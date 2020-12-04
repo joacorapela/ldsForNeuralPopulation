@@ -26,7 +26,7 @@ To begin data preproscessing you should be in the repository root directory.
 
 5. In the Matlab console type `saveDataSubset(<mouseName>, <dataFilenameInfix>)` to save a subset of the original data in Matlab version 6 format.
 
-6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` replace the strings `###` with the <dataFilenameInfix> from step 2 above.
+6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` replace the strings `###` with the `<dataFilenameInfix>` from step 2 above.
 
 7. `Rscript doSaveBinnedLDSTimeSeries.R ../../data/<mouseName>/binLDStimeSeries.ini`. This script will bin spike times.
 
