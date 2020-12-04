@@ -26,7 +26,7 @@ To begin data preproscessing you should be in the repository root directory.
 
 5. In the Matlab console type `saveDataSubset(<mouseName>, <dataFilenameInfix>)` to save a subset of the original data in Matlab version 6 format.
 
-6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` replace the strings `###` with the <dataFilenameInfix> from step 2 above.
+6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` replace the strings `###` with the `<dataFilenameInfix>` from step 2 above.
 
 7. `Rscript doSaveBinnedLDSTimeSeries.R ../../data/<mouseName>/binLDStimeSeries.ini`. This script will bin spike times.
 
@@ -43,7 +43,7 @@ where initialCondMethod could be FA (factor analysis) or PPCA (probabilistic pri
 '<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>'
  (this information includes the random number associated to the estimated model, as well as the log-likelihood and Akaike Information Criterion corresponding to the estimated model).
 
-   For example: `Rscript doAnalyze_MARSS_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
+   For example: `Rscript doAnalyze_DSSSM_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
    This script will print on the screen something like:
 
