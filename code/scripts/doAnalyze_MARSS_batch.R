@@ -10,7 +10,8 @@ source("../commonSrc/stats/kalmanFilter/fit_MARSS.R")
 source("../commonSrc/stats/kalmanFilter/create_MARSS.R")
 
 processAll <- function() {
-DEBUG <- TRUE
+DEBUG <- FALSE
+# DEBUG <- TRUE
 if(!DEBUG) {
     option_list <- list( 
         make_option(c("-d", "--stateDim"), type="integer", default=3, help="State dimensionalty"),
