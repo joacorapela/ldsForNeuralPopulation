@@ -18,17 +18,15 @@ To begin data preproscessing you should be in the repository root directory.
 
 1. Create directories and files for the analysis of a new mouse by running `./createMouseDirsAndFiles.csh <mouseName>`, where `<mouseName>` stands for the name of a mouse (e.g., MPV17).
 
-2. Copy the Matlab mouse data file to the directory `data/<mouseName>`. I assume the mouse data filename is `<dataFilenameInfix>.mat`. We will use `<dataFilenameInfix>` in step 5 below.
+2. Copy the Matlab mouse data file to the directory `data/<mouseName>`. I assume the mouse data filename is `<dataFilenameInfix>.mat`. We will use `<dataFilenameInfix>` in step 6 below.
 
 3. `cd code/scripts`.
 
 4. `matlab`.
 
-5. In the Matlab console type `saveDataSubset(<mouseName>, <dataFilenameInfix>)` to save the data in .RData format.
+5. In the Matlab console type `saveDataSubset(<mouseName>, <dataFilenameInfix>)` to save a subset of the original data in Matlab version 6 format.
 
-6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` set the entries:
-    - `matlabDataFilename` to `<dataFilenameInfix>_subset_V6.mat`.
-    - `saveFilename` to `<dataFilenameInfix>_timeSeries.RData`.
+6. Edit `../../data/<mouse name>/binLDStimeSeries.ini` and in the caterogry `[filenames]` replace the strings `###` with the <dataFilenameInfix> from step 2 above.
 
 7. `Rscript doSaveBinnedLDSTimeSeries.R ../../data/<mouseName>/binLDStimeSeries.ini`. This script will bin spike times.
 
