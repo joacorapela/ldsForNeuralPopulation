@@ -1,17 +1,5 @@
 # Code for fitting linear dynamical models with inputs to neural population recordings
 
-## Installation
-
-1. `git clone https://github.com/joacorapela/ldsForNeuralPopulation`
-
-2. `cd ldsForNeuralPopulation`
-
-3. `conda env create -f environment.yml`
-
-4. `conda activate envLDSneuralPopulation`
-
-5. `./installPackages.csh`
-
 ## Data preprocessing
 
 To begin data preproscessing you should be in the repository root directory.
