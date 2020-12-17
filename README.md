@@ -24,14 +24,14 @@ To begin the estimation of one model you should be in directory `code/scripts'.
 
 8. Create a file with estimation parameters (e.g., `../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini`)
 
-9. `Rscript doAnalyze_DSSSM_batch.R --stateDim=stateDim --stateInputMemorySecs=stateInputMemorySecs --obsInputMemorySecs=obsInputMemorySecs --initialCondMethod=initialCondMethod binConfigFilename estConfigFilename logFilename`
+9. `Rscript doAnalyze_DSSSM_batch.R --stateDim=stateDim --analysisStartTimeSecs=analysisStarTimeSecs --stateInputMemorySecs=stateInputMemorySecs --obsInputMemorySecs=obsInputMemorySecs --initialCondMethod=initialCondMethod binConfigFilename estConfigFilename logFilename`
 
 where initialCondMethod could be FA (factor analysis) or PPCA (probabilistic principal components analysis), binConfigFilename is the file updated in step 6, estConfigFilename is the file created in step 8 and logFilename is the name of an ASCII file where summary information about the estimation of the model will be appended. A line in this file will be of the format:
 
 '<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>'
  (this information includes the random number associated to the estimated model, as well as the log-likelihood and Akaike Information Criterion corresponding to the estimated model).
 
-   For example: `Rscript doAnalyze_DSSSM_batch.R --stateDim=9 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
+   For example: `Rscript doAnalyze_DSSSM_batch.R --stateDim=9 --analysisStartTimeSecs=180 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
    This script will print on the screen something like:
 
