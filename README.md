@@ -41,6 +41,18 @@ indicating that the random number associated with the estimated model was 104565
 
 This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
+## Estimation of multiple models (for model selection)
+
+1. Create a file with estimation parameters (e.g., data/v1Shaft1_estimation.ini)
+
+2. Create a file describing each model to estimate (e.g., data/viShaft1_modelsSelection.txt)
+
+3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables configFilename and modelSelectionFile to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
+
+4. Run the Unix script file (e.g., `./doAnalyze_MARSS_v1Shaft1.csh`)
+
+The Unix script file will submit in parallel as many jobs to the cluster as models specified in step 2. The best model can be selected as that which maximises the Akaike information criterion reported in modelsLogFilename (step 3).
+
 ## Plotting model parameters
 
 To begin the plotting of model parameters you should be in directory `code/scripts`.
