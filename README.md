@@ -28,14 +28,15 @@ To begin the estimation of one model you should be in directory `code/scripts'.
 
 where initialCondMethod could be FA (factor analysis) or PPCA (probabilistic principal components analysis), binConfigFilename is the file updated in step 6, estConfigFilename is the file created in step 8 and logFilename is the name of an ASCII file where summary information about the estimation of the model will be appended. A line in this file will be of the format:
 
-'<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>'
+`<model estimation number> <start time> <train duration> <validation duration> <state dimension> <state memory> <obs memory> <initial conditions method> <log likelihood> <AIC> <cross-validated log likelihood> <estimation elapsed time>`
+
  (this information includes the random number associated to the estimated model, as well as the log-likelihood and Akaike Information Criterion corresponding to the estimated model).
 
    For example: `Rscript doAnalyze_DSSSM_batch.R --stateDim=9 --analysisStartTimeSecs=180 --stateInputMemorySecs=0.0 --obsInputMemorySecs=0.6 --initialCondMethod=FA ../../data/<mouseName>/binLDStimeSeries.ini ../../data/<mouseName>/v1Shaft1_estimation_DSSSM.ini ../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
    This script will print on the screen something like:
 
-   [1] "1045650, 180.000000, 180.000000, 60.000000, 9, 0.000000, 0.800000, PPCA, -12016.202005, 25842.404010, -4667.808143, 65.294000\n"
+   `[1] "1045650, 180.000000, 180.000000, 60.000000, 9, 0.000000, 0.800000, PPCA, -12016.202005, 25842.404010, -4667.808143, 65.294000\n"`
 
 indicating that the random number associated with the estimated model was 1045650, the models was estimated from a subset of spikes starting at time 180 sec, it was trained using 180 sec of neurla activity, it was validated using 60 sec of neural activity, stateDim=9, stateInputMemorySecs=0, obsInputMemorySecs=0.6, initialCondMethod=PPCA, log likelihood=-12016.2, Akaike Information Criterion=25842.404010, cross-validated Akaike Information Criterion=-4667.808143, estimation elapsed time=65.3 secs. 
 
@@ -43,13 +44,13 @@ This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
 ## Estimation of multiple models (for model selection)
 
-1. Create a file with estimation parameters (e.g., data/v1Shaft1_estimation.ini)
+1. Create a file with estimation parameters (e.g., `../../data/<mouseName>/v1Shaft1_estimation.ini`)
 
-2. Create a file describing each model to estimate (e.g., data/viShaft1_modelsSelection.txt)
+2. Create a file describing each model to estimate (e.g., `../../data/<mouseName>/viShaft1_modelsSelection.txt`)
 
-3. In a Unix script file (e.g., doAnalyze_MARSS_v1Shaft1.csh) set the variables configFilename and modelSelectionFile to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended
+3. In a Unix script file (e.g., `<mouseName>/doAnalyze_MARSS_v1Shaft1.csh`) set the variables configFilename and modelSelectionFile to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended.
 
-4. Run the Unix script file (e.g., `./doAnalyze_MARSS_v1Shaft1.csh`)
+4. Run the Unix script file (e.g., `<mouseName>/doAnalyze_MARSS_v1Shaft1.csh`)
 
 The Unix script file will submit in parallel as many jobs to the cluster as models specified in step 2. The best model can be selected as that which maximises the Akaike information criterion reported in modelsLogFilename (step 3).
 
