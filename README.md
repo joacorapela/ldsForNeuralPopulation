@@ -52,7 +52,7 @@ This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
 4. In a Unix script file (e.g., `doAnalyze_DSSSM_v1Shaft1.csh`) set the variables `mouseName`, `region` and `shaftNro`
 
-4. Run the Unix script file (e.g., `doAnalyze_MARSS_v1Shaft1.csh`)
+4. Run the Unix script file (e.g., `doAnalyze_DSSSM_v1Shaft1.csh`)
 
 The Unix script file will submit in parallel as many jobs to the cluster as models specified in step 2. The best model can be selected as that which maximises the Akaike information criterion reported in modelsLogFilename (step 3).
 
