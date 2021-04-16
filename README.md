@@ -48,9 +48,11 @@ This information is saved in `../../log/<mouseName>/v1Shaft1Models_DSSSM.csv`
 
 2. Create a file describing each model to estimate (e.g., `../../data/<mouseName>/viShaft1_modelsSelection.txt`)
 
-3. In a Unix script file (e.g., `<mouseName>/doAnalyze_MARSS_v1Shaft1.csh`) set the variables configFilename and modelSelectionFile to the filenames created in 1 and 2, and the variable modelsLogFilename to the name of a file where summary information about each estimated model will be appended.
+3. Create directory `<mouseName>` and `cd <mouseName>`
 
-4. Run the Unix script file (e.g., `<mouseName>/doAnalyze_MARSS_v1Shaft1.csh`)
+4. In a Unix script file (e.g., `doAnalyze_DSSSM_v1Shaft1.csh`) set the variables `mouseName`, `region` and `shaftNro`
+
+4. Run the Unix script file (e.g., `doAnalyze_MARSS_v1Shaft1.csh`)
 
 The Unix script file will submit in parallel as many jobs to the cluster as models specified in step 2. The best model can be selected as that which maximises the Akaike information criterion reported in modelsLogFilename (step 3).
 
