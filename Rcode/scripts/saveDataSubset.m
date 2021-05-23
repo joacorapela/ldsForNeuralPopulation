@@ -1,6 +1,12 @@
-function saveDataSubset(mouseName, dataFilenameInfix)
-
-    inputFilename = sprintf('../../data/%s/%s.mat', mouseName, dataFilenameInfix);
+function saveDataSubset(mouseName, dataFilenameInfix, varargin)
+    
+    if nargin > 2
+         inputFilename = ...
+        ['/mnt/data/Mitra/figs/',mouseName,'/preprocessing/',varargin{1},'/',dataFilenameInfix];
+    else
+        inputFilename = sprintf('../../data/%s/%s.mat', mouseName, dataFilenameInfix);
+    end
+    
     outputFilename = sprintf('../../data/%s/%s_subset_V6.mat', mouseName, dataFilenameInfix);
 
     load(inputFilename)
