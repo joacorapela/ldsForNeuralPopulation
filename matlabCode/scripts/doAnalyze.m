@@ -7,12 +7,16 @@
 clear all
 close all
 
+animalname = 'MPV18_2';
+matfilename = 'task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_full_timeSeries.mat';%'task_remade_from_stimlaser_perf_timeSeries.mat';
+area = 'V1';
+
 stateInputMemorySecs = 0;
 analysisStartTimeSecs = 180;
 trainDurSecs = 180;
-codeRoot = '~/dev/research/gatsby-swc/gatsby/PLDS/matlabCode/pop_spike_dyn';
-timeSeriesFilename = '../../results/MPV18_2/task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_timeSeries.mat';
-resultsFilename = '../../results/MPV18_2/PLDSresults.mat';
+codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
+timeSeriesFilename = ['../../results/',animalname,'/',matfilename];
+resultsFilename = ['../../results/',animalname,'/',area,'_PLDSresults_',num2str(analysisStartTimeSecs),'.mat'];
 
 timeSeries = load(timeSeriesFilename);
 timeSeries = timeSeries.timeSeries;
@@ -25,7 +29,11 @@ cd(oldFolder)
 
 dbstop if error
 
-spikeCounts = timeSeries.v1Shaft1SpikeCounts;
+if strcmp(area,'V1')
+    spikeCounts = [timeSeries.v1Shaft1SpikeCounts;timeSeries.v1Shaft2SpikeCounts];
+elseif strcmp(area,'LM')
+    spikeCounts = [timeSeries.lmShaft1SpikeCounts;timeSeries.lmShaft2SpikeCounts];%timeSeries.v1Shaft1SpikeCounts;
+end
 
 stateInputs = buildGoNogoVisualAndLaserInputs(timeSeries.goStim, timeSeries.nogoStim, timeSeries.laserStim, stateInputMemorySecs*sRate);
 
