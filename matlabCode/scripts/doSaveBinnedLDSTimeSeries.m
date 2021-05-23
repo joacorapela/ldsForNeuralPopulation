@@ -1,6 +1,6 @@
-addpath('~/dev/research/programs/src/matlab/ini2struct')
+% addpath('/mnt/data/Mitra/cache/repos/ini2struct')
 
-processAll()
+processAll(animalname)
 
 function spikeCounts = getSpikeCounts(spikeSamples, breaks)
     nUnits = length(spikeSamples);
@@ -18,8 +18,8 @@ function binnedStimulus = getBinnedStimulus(stimOnSamples, stimOffSamples, break
     end
 end
 
-function processAll()
-    iniFilename = '../../data/MPV18_2/binLDStimeSeries.ini';
+function processAll(animalname)
+    iniFilename = sprintf('../../data/%s/binLDStimeSeries.ini',animalname);
 
     config = ini2struct(iniFilename);
 
