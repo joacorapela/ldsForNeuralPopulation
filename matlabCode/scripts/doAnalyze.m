@@ -7,16 +7,24 @@
 clear all
 close all
 
-animalname = 'MPV18_2';
-matfilename = 'task_2019-02-06_21-36-35_preprocessing_2019_04_05_15_04_39_ks2_full_timeSeries.mat';%'task_remade_from_stimlaser_perf_timeSeries.mat';
-area = 'V1';
+animalname = 'VL61';
+matfilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
+area = 'LM';
+skipmsg = 1;
+nrep = 4;
+
+for rep = 1:nrep
 
 stateInputMemorySecs = 0;
-analysisStartTimeSecs = 180;
-trainDurSecs = 180;
+trainDurSecs = 180; %180
+analysisStartTimeSecs = (rep-1)*trainDurSecs;  % or (rep-1), from 0
+if  ~isdir(['../../results/',animalname,'/',num2str(trainDurSecs)])
+    mkdir(['../../results/',animalname,'/',num2str(trainDurSecs)])
+end
+
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 timeSeriesFilename = ['../../results/',animalname,'/',matfilename];
-resultsFilename = ['../../results/',animalname,'/',area,'_PLDSresults_',num2str(analysisStartTimeSecs),'.mat'];
+resultsFilename = ['../../results/',animalname,'/',num2str(trainDurSecs),'/',area,'_PLDSresults_',num2str(analysisStartTimeSecs),'.mat'];
 
 timeSeries = load(timeSeriesFilename);
 timeSeries = timeSeries.timeSeries;
@@ -109,4 +117,7 @@ save(resultsFilename, 'y', 'u', 'params', 'seq', 'varBound');
 % title('prediction')
 
 cd(oldFolder)
+
+clearvars -except animalname matfilename area rep skipmsg
+end
 
