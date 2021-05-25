@@ -1,6 +1,10 @@
 
 % saves v6 mat file and ini files for multiple animals in data/animalname
 
+binsizesecs = 0.2;
+laserduration = 0.15;
+
+%
 addpath('/mnt/data/Mitra/cache/repos/ini2struct')
 addpath('/mnt/data/Mitra/cache/repos/struct2ini')
 addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/Rcode/scripts')
@@ -51,6 +55,9 @@ for i = 1%:length(animallist)
     config.filenames.matlabdatafilename = strrep(config.filenames.matlabdatafilename,'###',matfilename.name(1:end-4));
     config.filenames.savefilename = strrep(config.filenames.savefilename,'exampleMouse',animallist{i});
     config.filenames.savefilename = strrep(config.filenames.savefilename,'###',matfilename.name(1:end-4));
+    % set binsize
+    config.config_params.binsizesecs = binsizesecs;
+    config.config_params.laserduration = laserduration;
  
     
     struct2ini(sprintf('../../data/%s/binLDStimeSeries.ini',animallist{i}),config)
