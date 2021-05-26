@@ -6,25 +6,28 @@
 
 clear all
 close all
+cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
-animalname = 'VL61';
+
+animalname = 'VL63';
 matfilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
-area = 'LM';
+binsize = '200ms/';
+area = 'V1';
 skipmsg = 1;
-nrep = 4;
+nrep = 5;
 
 for rep = 1:nrep
 
 stateInputMemorySecs = 0;
-trainDurSecs = 180; %180
-analysisStartTimeSecs = (rep-1)*trainDurSecs;  % or (rep-1), from 0
-if  ~isdir(['../../results/',animalname,'/',num2str(trainDurSecs)])
-    mkdir(['../../results/',animalname,'/',num2str(trainDurSecs)])
+trainDurSecs = 180; %180,300,600
+analysisStartTimeSecs = (rep)*trainDurSecs;  % or (rep-1), from 0
+if  ~isdir(['../../results/',animalname,'/',binsize,num2str(trainDurSecs)])
+    mkdir(['../../results/',animalname,'/',binsize,num2str(trainDurSecs)])
 end
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
-timeSeriesFilename = ['../../results/',animalname,'/',matfilename];
-resultsFilename = ['../../results/',animalname,'/',num2str(trainDurSecs),'/',area,'_PLDSresults_',num2str(analysisStartTimeSecs),'.mat'];
+timeSeriesFilename = ['../../results/',animalname,'/',binsize,matfilename];
+resultsFilename = ['../../results/',animalname,'/',binsize,num2str(trainDurSecs),'/',area,'_PLDSresults_',num2str(analysisStartTimeSecs),'.mat'];
 
 timeSeries = load(timeSeriesFilename);
 timeSeries = timeSeries.timeSeries;
@@ -118,6 +121,6 @@ save(resultsFilename, 'y', 'u', 'params', 'seq', 'varBound');
 
 cd(oldFolder)
 
-clearvars -except animalname matfilename area rep skipmsg
+clearvars -except animalname matfilename area rep skipmsg binsize
 end
 

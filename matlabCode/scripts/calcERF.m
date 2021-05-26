@@ -1,5 +1,5 @@
 
-% run from results/animalName/tw folder
+% run from results/animalName/binsize/tw folder
 
 area = 'LM';
 nlags = 11; % delays (including zero)

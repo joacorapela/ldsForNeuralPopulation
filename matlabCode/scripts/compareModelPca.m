@@ -5,14 +5,15 @@
 
 cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results')
 
-animalname = 'VL61';
+animalname = 'VL63';
+binsize= '200ms'; % or '' for old files
 timeSeriesFilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
-area = 'LM';
+area = 'V1';
 
-trainDurSecs = 180;
-analysisStartTimeSecs = (3)*trainDurSecs; % choose the model to load here (start time)
+trainDurSecs = 300;%180
+analysisStartTimeSecs = (4)*trainDurSecs; % choose the model to load here (start time)
 
-cd(animalname)
+cd(fullfile(animalname,binsize))
 
 % load timeseries file
 timeSeries = load(timeSeriesFilename);
