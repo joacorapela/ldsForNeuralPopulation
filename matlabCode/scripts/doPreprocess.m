@@ -33,9 +33,10 @@ for i = 1%:length(animallist)
     if ~isdir(fullfile(rootdir,animallist{i}))
         mkdir(fullfile(rootdir,animallist{i}))
     end
-     if ~isdir(fullfile(resultdir,animallist{i}))
-        mkdir(fullfile(resultdir,animallist{i}))
-    end
+     if ~isdir(fullfile(resultdir,animallist{i},[num2str(1000*binsizesecs),'ms']))
+        mkdir(fullfile(resultdir,animallist{i},[num2str(1000*binsizesecs),'ms']))
+     end
+
     
     matfilename = ...
     dir(sprintf('/mnt/data/Mitra/figs/%s/preprocessing/%s/task_*.mat',animallist{i},preprocessinglist{i}));
@@ -53,8 +54,10 @@ for i = 1%:length(animallist)
     config = ini2struct(sprintf('../../data/%s/binLDStimeSeries.ini',animallist{i}));    
     config.filenames.matlabdatafilename = strrep(config.filenames.matlabdatafilename,'exampleMouse',animallist{i});
     config.filenames.matlabdatafilename = strrep(config.filenames.matlabdatafilename,'###',matfilename.name(1:end-4));
-    config.filenames.savefilename = strrep(config.filenames.savefilename,'exampleMouse',animallist{i});
+    config.filenames.savefilename = strrep(config.filenames.savefilename,'exampleMouse',...
+        [animallist{i},'/',num2str(1000*binsizesecs),'ms']);
     config.filenames.savefilename = strrep(config.filenames.savefilename,'###',matfilename.name(1:end-4));
+    
     % set binsize
     config.config_params.binsizesecs = binsizesecs;
     config.config_params.laserduration = laserduration;
