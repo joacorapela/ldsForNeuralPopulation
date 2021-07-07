@@ -1,3 +1,4 @@
+% Not sure about the comparison done here, there are better ways.
 
 % compares variance of the data along the dimensions of C (low dimensional
 % latent space) to the variance of data along its principal components
@@ -6,12 +7,12 @@
 cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results')
 
 animalname = 'VL63';
-binsize= '200ms'; % or '' for old files
+binsize= '100ms'; % or '' for old files
 timeSeriesFilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
 area = 'V1';
 
 trainDurSecs = 300;%180
-analysisStartTimeSecs = (4)*trainDurSecs; % choose the model to load here (start time)
+analysisStartTimeSecs = (2)*trainDurSecs; % choose the model to load here (start time)
 
 cd(fullfile(animalname,binsize))
 
