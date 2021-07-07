@@ -1,20 +1,18 @@
 
-% PLDS toolbox example, with external input
-%
-% Lars Buesing, Jakob H Macke, 2014
-%
+% This script is usually called by doAnalyzeAllAnimals.m which specifies
+% the commented parameters (animal name, matfilename, etc.)
 
-clear all
-close all
-cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
+% clear all
+% close all
+% cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
-
-animalname = 'VL63';
-matfilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
-binsize = '200ms/';
-area = 'V1';
-skipmsg = 1;
-nrep = 5;
+% 
+% animalname = 'VL63';
+% matfilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
+% binsize = '100ms/';
+% area = 'V1';
+% skipmsg = 1;
+% nrep = 5;
 
 for rep = 1:nrep
 
@@ -121,6 +119,6 @@ save(resultsFilename, 'y', 'u', 'params', 'seq', 'varBound');
 
 cd(oldFolder)
 
-clearvars -except animalname matfilename area rep skipmsg binsize
+clearvars -except animalname matfilename area rep nrep skipmsg binsize matfilenamelist animallist animali
 end
 
