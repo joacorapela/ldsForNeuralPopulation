@@ -1,7 +1,7 @@
 
 % saves v6 mat file and ini files for multiple animals in data/animalname
 
-binsizesecs = 0.2;
+binsizesecs = 0.05;
 laserduration = 0.15;
 
 %
@@ -29,7 +29,7 @@ exptype = {'FF','FF','FF','FF',...
 rootdir  = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/data/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 
-for i = 1%:length(animallist)
+for i = 1:length(animallist)
     if ~isdir(fullfile(rootdir,animallist{i}))
         mkdir(fullfile(rootdir,animallist{i}))
     end
