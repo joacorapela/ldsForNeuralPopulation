@@ -1,7 +1,7 @@
 
 % run from results/animalName/binsize/tw folder
 
-area = 'LM';
+area = 'V1';
 nlags = 11; % delays (including zero)
 ninputs = 4;
 do_plot = 1;
@@ -18,6 +18,8 @@ end
 
 for rep = 1:nreps
     res = load(PLDSresFiles(rep).name);
+    % uncomment to see the likelihood of each model
+%    res.seq.posterior.varBound
     RF = calcERFforWindow(res,RF,nlags,ninputs,rep);
 end
 
