@@ -14,7 +14,7 @@ function binnedStimulus = getBinnedStimulus(stimOnSamples, stimOffSamples, break
     binnedStimulus = zeros(length(breaks)-1, 1);
     for i=1:length(stimOnSamples)
         stimulatedBins = find(stimOnSamples(i)<=breaks & breaks<stimOffSamples(i));
-        binnedStimulus(stimulatedBins) = 1.0;
+        binnedStimulus(stimulatedBins-1) = 1.0;
     end
 end
 
