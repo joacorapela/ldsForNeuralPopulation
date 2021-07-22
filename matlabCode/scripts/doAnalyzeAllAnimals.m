@@ -23,17 +23,18 @@ for animali = 1:length(animallist) % animal5 error
     matfilename = matfilenamelist{animali};
     binsize = '20ms/';
     skipmsg = 1;
-    nrep = 5; 
+    nrep = 5;
     
     area = 'V1';
-  %  try
-    run('doAnalyze.m')
-   % catch
-   % end
+    
+    try
+        run('doAnalyze.m')
+    catch
+    end
     
     area = 'LM';
     try
-    run('doAnalyze.m')
+        run('doAnalyze.m')
     catch
     end
     
