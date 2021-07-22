@@ -2,17 +2,6 @@
 % This script is usually called by doAnalyzeAllAnimals.m which specifies
 % the commented parameters (animal name, matfilename, etc.)
 
-% clear all
-% close all
-% cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
-
-% 
-% animalname = 'VL63';
-% matfilename = 'task_remade_from_stimlaser_perf_timeSeries.mat';
-% binsize = '100ms/';
-% area = 'V1';
-% skipmsg = 1;
-% nrep = 5;
 
 for rep = 1:nrep
 
@@ -65,12 +54,6 @@ fprintf('Max spike count:    %i \n', max(vec([seqOrig.y])))
 fprintf('Mean spike count:   %d \n', mean(vec([seqOrig.y])))
 fprintf('Freq non-zero bin:  %d \n', mean(vec([seqOrig.y])>0.5))
 
-%%%% generate data
-
-% trueparams = PLDSgenerateExample('xDim',xDim,'yDim',yDim,'doff',doff,'uDim',uDim);
-% seqOrig    = PLDSsample(trueparams,T,Trials,'yMax',10);
-% tp         = trueparams;
-
 %%% fit model
 
 seq    = seqOrig;
@@ -93,32 +76,8 @@ y = seqOrig.y;
 u = seqOrig.u;
 save(resultsFilename, 'y', 'u', 'params', 'seq', 'varBound');
 
-%%% check learned parameters
-
-% figure
-% plot(vec(tp.model.C*tp.model.B),vec(params.model.C*params.model.B),'xr')
-
-%%% test model by predicting future spike trains 
-
-% Tpred = 200;
-% seqPred = PLDSsample(trueparams,Tpred,1);  % sample a test data set
-
-% condRange = [1:100];                       % the time interval to condition on
-% predRange = [101:200];                     % the time interval to predict
-
-% predict with learned parameters
-% tic; [ypred xpred xpredCov seqInf] = PLDSPredictRange(params,seqPred(1).y,condRange,predRange,'u',seqPred(1).u); toc
-
-% figure;
-% subplot(2,1,1)
-% imagesc(seqPred.y(:,predRange))
-% title('true data')
-% subplot(2,1,2)
-% imagesc(ypred)
-% title('prediction')
 
 cd(oldFolder)
-
 clearvars -except animalname matfilename area rep nrep skipmsg binsize matfilenamelist animallist animali
 end
 
