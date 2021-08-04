@@ -60,7 +60,7 @@ for animali = 1:length(animallist)
     
     resultsFilename = fullfile(summarymatfile.folder,...
         ['LONO_',datestr(now,'yy_mm_dd_HH_MM_SS'),'_',summarymatfile.name]);    
-    save(resultsFilename,'Fold','nFolds','Seed');
+    save(resultsFilename,'Fold','nFolds','Seed','-v7.3');
 
 end
 
