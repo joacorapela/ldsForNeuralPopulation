@@ -1,8 +1,13 @@
-function [seq] = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area)
+function [seq] = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO)
 res = load(fullfile(summarymatfile.folder,summarymatfile.name));
 if ~isnan(binWinms)
     error('custized window for trial, not implemented yet')
 end
+
+if LONO.do 
+    res = res.Fold{LONO.fold}.train;
+end
+
 
 units = eval(sprintf('[res.%s{1}.SingleUnitSpikeTimes,res.%s{2}.SingleUnitSpikeTimes]',area,area)); % cell of length Nneurons, 
 N = length(units); % number of neurons                                                                                                    % containing spike times
