@@ -31,13 +31,13 @@ resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 
 for animali = 1:length(animallist)
     animalname = animallist{animali};
-    binSizems = 10;
+    binSizems = 50;
     binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
     skipmsg = 1;
     doSavefig = 1;
     doSaveres = 1;
     
-    LONO.do = 0; % if 1 uses the train set only
+    LONO.do = 1; % if 1 uses the train set only
     LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
     
     area = 'V1';    
