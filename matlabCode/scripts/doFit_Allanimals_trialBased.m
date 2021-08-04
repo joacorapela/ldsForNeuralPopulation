@@ -29,10 +29,9 @@ exptype = {'FF','FF','FF','FF',...
 rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 
-for animali = 1%:length(animallist) % animal5 error
+for animali = 1:length(animallist)
     animalname = animallist{animali};
-    %matfilename = matfilenamelist{animali};
-    binSizems = 50;
+    binSizems = 10;
     binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
     skipmsg = 1;
     doSavefig = 1;
