@@ -2,17 +2,18 @@
 % This script is called by doFit_Allanimals_trialBased which specifies
 % the commented parameters (animal name, matfilename, etc.)
 
+summarymatfile = ...
+    dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
+
 if ~LONO.do
-    summarymatfile = ...
-        dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
     savedir = fullfile(resultdir,animalname,'trial_based',[num2str(binSizems),'ms','Bins']);
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
 else
-    summarymatfile = ...
+    LONO.file = ...
         dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_*.mat',animallist{animali},preprocessinglist{animali})));
     % default: latest one 
-    if length(summarymatfile) > 1
-        summarymatfile = summarymatfile(end);
+    if length(LONO.file) > 1
+        LONO.file = LONO.file(end);
     end
     % add a summarymatfile name option for LONO - also save in lono folder,
     % name fold1

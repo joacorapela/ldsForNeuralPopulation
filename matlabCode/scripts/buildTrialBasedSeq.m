@@ -5,7 +5,8 @@ if ~isnan(binWinms)
 end
 
 if LONO.do 
-    res = res.Fold{LONO.fold}.train;
+    LONO.fileContents = load(fullfile(LONO.file.folder,LONO.file.name));   
+    res = assignToFold(LONO.fileContents.Fold{LONO.fold}.trainInd,res);
 end
 
 
