@@ -37,13 +37,14 @@ for animali = 1:length(animallist)
     doSavefig = 1;
     doSaveres = 1;
     
-    area = 'V1';
+    LONO.do = 0; % if 1 uses the train set only
+    LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
     
+    area = 'V1';    
     try
         run('doFit_trialBased.m')
     catch
-    end
-    
+    end    
     area = 'LM';
     try
         run('doFit_trialBased.m')
