@@ -14,13 +14,13 @@ out.LStepTimeStampOn = res.LStepTimeStampOn(TLaserTrialInd);
 out.LAllOn = res.LAllOn(TLaserTrialInd,:);
 % and no laser off field(ramp down)
 %
-out.gotrialind = intersect(res.gotrialind,tInd);
-out.nogotrialind = intersect(res.nogotrialind,tInd);
-out.correctgotrialind = intersect(res.correctgotrialind,tInd);
-out.correctnogotrialind = intersect(res.correctnogotrialind,tInd);
-out.nogroomingind = intersect(res.nogroomingind,tInd);
+[~,~,out.gotrialind]= intersect(res.gotrialind,tInd);
+[~,~,out.nogotrialind] = intersect(res.nogotrialind,tInd);
+[~,~,out.correctgotrialind] = intersect(res.correctgotrialind,tInd);
+[~,~,out.correctnogotrialind] = intersect(res.correctnogotrialind,tInd);
+[~,~,out.nogroomingind] = intersect(res.nogroomingind,tInd);
 
-%%% pass on timeseries defined ocontinuously, not in trial
+%%% pass on timeseries defined continuously, not in trial
 %%% structure
 out.V1 = res.V1;
 out.LM = res.LM;
