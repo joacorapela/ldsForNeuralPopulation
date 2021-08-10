@@ -34,6 +34,7 @@ config.binSizems= binSizems;
 config.binWinms = binWinms;
 config.area = area;
 config.animalname = animalname;
+config.summarymatfile = summarymatfile;
 
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
@@ -72,7 +73,7 @@ tic; [params seq varBound EStepTimes MStepTimes] = PopSpikeEM(params,seq); toc
 
 %%% save true and estimated models
 if doSaveres
-    save(resultsFilename, 'params', 'seq', 'varBound','config');
+    save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
 end
 doQuickPlots(params, seq, varBound,doSavefig,resultsFigname);
 
