@@ -36,6 +36,8 @@ for tr = 1:length(seq_One)
     pred(tr,:) = exp(z);
     yOrig(tr,:) = seq_One(tr).yOrig;
 end
+% pred is actually the expectation of the poisson distribution 
+% gamma is hard coded here
 
 
 figure;plot(nanmean(pred,1));hold on;plot(nanmean(yOrig,1));legend({'prediction','original trace'})
