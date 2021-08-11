@@ -28,21 +28,17 @@ for Tr = 1:size(res.PAllOn,1)
     
     middlep = ceil(size(res.PAllOn,2)/2);                      
     edges = [fliplr(res.PAllOn(Tr,middlep-edgestep):-edgestep:res.PAllOn(Tr,1)),res.PAllOn(Tr,middlep):edgestep:res.PAllOn(Tr,end)];
-    T = length(edges) - 1; % number of bins
+    T = size(edges,2) - 1; % number of bins
     
     % spikes
-    %%% check this 
-    seq(Tr).y = nan(N-1,T);
-    seq_One(Tr).yOrig = nan(1,T);
-    nCount = 1;
+    seq(Tr).y = nan(N,T);
     for neuron = 1:N
-        if neuron == heldoutN
-            [seq_One(Tr).yOrig(1,:),~] = histcounts(units{heldoutN},edges);
-        else
-            [seq(Tr).y(nCount,:),~] = histcounts(units{nCount},edges);
-            nCount = nCount+1;
-        end
+        [seq(Tr).y(neuron,:),~] = histcounts(units{neuron},edges);
     end
+    
+    seq_One(Tr).yOrig = seq(Tr).y(heldoutN,:);
+    seq(Tr).y(heldoutN,:) = [];
+    
     
     % make u matrix: order: vg,vng,lg,lng
     seq(Tr).u = zeros(4,T); 

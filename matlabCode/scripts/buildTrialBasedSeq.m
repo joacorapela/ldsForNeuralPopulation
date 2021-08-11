@@ -29,7 +29,7 @@ for Tr = 1:size(res.PAllOn,1)
     
     middlep = ceil(size(res.PAllOn,2)/2);                      
     edges = [fliplr(res.PAllOn(Tr,middlep-edgestep):-edgestep:res.PAllOn(Tr,1)),res.PAllOn(Tr,middlep):edgestep:res.PAllOn(Tr,end)];
-    T = length(edges) - 1; % number of bins
+    T = size(edges,2) - 1; % number of bins
     
     % spikes
     seq(Tr).y = nan(N,T);

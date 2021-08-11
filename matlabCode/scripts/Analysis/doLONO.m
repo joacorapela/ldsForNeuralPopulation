@@ -1,5 +1,5 @@
 % cd to the right folder
-Training = 'Fold1_V1_PLDSfitRes_21_08_09_14_27_24.mat';
+Training = 'Fold1_V1_PLDSfitRes_21_08_10_14_28_34.mat';
 resTr=load(Training);
 
 % corresponding LONO params file:
@@ -12,18 +12,34 @@ LONOparams = load(fullfile(resTr.LONO.file.folder,resTr.LONO.file.name));
 FittedFold = str2num(strtok(strtok(Training,'Fold'),'_'));
 
 % make y of the test dataset, leaving out heldoutN
-heldoutN = 3; % id of held out neuron
+heldoutN = 4; % id of held out neuron
 % seq_one will only get a y_orig field which is its real spiking rate
 [seq_minusOne,seq_One] = buildTrialBasedSeq_heldout(resTr.config.summarymatfile, resTr.config.binSizems,resTr.config.binWinms,...
     resTr.config.area,LONOparams.Fold{FittedFold}.testInd,heldoutN);
 
 % inference: get x - before here, prepare the loading matrix (C) and d : eliminate the corresponding row)
 % check if anything else is needed
-resTr_minusOne = resTr;
-resTr_minusOne.params.model.C(heldoutN,:) = [];
-resTr_minusOne.params.model.d(heldoutN) = [];
-[seq_One,~] = resTr.params.model.inferenceHandle(resTr_minusOne.params,seq_minusOne);
+resTs_minusOne = resTr;
+resTs_minusOne.params.model.C(heldoutN,:) = [];
+resTs_minusOne.params.model.d(heldoutN) = [];
+resTs_minusOne.seq = seq_minusOne;
+[resTs_minusOne.seq,~] = resTr.params.model.inferenceHandle(resTs_minusOne.params,resTs_minusOne.seq); % check what it wants from seq 
+%                                                                                  % (it has now a field named yorig with one row, no u)                                                                                  % (it has now a field named yorig with one row, no u) 
 
-% for each trial: compare seq_One(1).y and the actual neural trace
-% seq_One(1).yOrig
+
+pred = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
+yOrig = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
+for tr = 1:length(seq_One)
+    % for trial tr:
+    z = resTr.params.model.C(heldoutN,:) * resTs_minusOne.seq(tr).posterior.xsm + ...
+        resTr.params.model.d(heldoutN);
+    pred(tr,:) = exp(z);
+    yOrig(tr,:) = seq_One(tr).yOrig;
+end
+
+
+figure;plot(nanmean(pred,1));hold on;plot(nanmean(yOrig,1));legend({'prediction','original trace'})
+% why the offset?
+
+% measure the difference between pred and yOrig
 
