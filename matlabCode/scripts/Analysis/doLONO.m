@@ -1,4 +1,5 @@
-% cd to the right folder
+
+cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/VL61/trial_based_LONO/50msBins')
 Training = 'Fold1_V1_PLDSfitRes_21_08_10_14_28_34.mat';
 resTr=load(Training);
 
@@ -23,9 +24,8 @@ resTs_minusOne = resTr;
 resTs_minusOne.params.model.C(heldoutN,:) = [];
 resTs_minusOne.params.model.d(heldoutN) = [];
 resTs_minusOne.seq = seq_minusOne;
-[resTs_minusOne.seq,~] = resTr.params.model.inferenceHandle(resTs_minusOne.params,resTs_minusOne.seq); % check what it wants from seq 
-%                                                                                  % (it has now a field named yorig with one row, no u)                                                                                  % (it has now a field named yorig with one row, no u) 
-
+[resTs_minusOne.seq,~] = resTr.params.model.inferenceHandle(resTs_minusOne.params,resTs_minusOne.seq); 
+%                                                                                                                                                                  % (it has now a field named yorig with one row, no u) 
 
 pred = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
 yOrig = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
@@ -39,9 +39,7 @@ end
 % pred is actually the expectation of the poisson distribution 
 % gamma is hard coded here
 
-
 figure;plot(nanmean(pred,1));hold on;plot(nanmean(yOrig,1));legend({'prediction','original trace'})
-% why the offset?
 
-% measure the difference between pred and yOrig
+% measure the difference between pred and yOrig:
 
