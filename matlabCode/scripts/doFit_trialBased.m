@@ -11,7 +11,7 @@ if ~LONO.do
 else
     LONO.file = ...
         dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_*.mat',animallist{animali},preprocessinglist{animali})));
-    % default: latest one 
+    % default: latest one
     if length(LONO.file) > 1
         LONO.file = LONO.file(end);
     end
@@ -44,42 +44,33 @@ cd(oldFolder)
 
 dbstop if error
 
-uDim    = 4;
-xDim    = 9;
-yDim    = size(seq(1).y,1);
-T       = size(seq(1).T);
-Trials  = length(seq);
-maxIter = 100;
-doff    = 0.0;
+if numel(nStates) == 1 % evaluatig single model
+    [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(nStates,seq);
+    %%% save true and estimated models
+    if doSaveres
+        save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
+    end
+    doQuickPlots(params, seq, varBound,doSavefig,resultsFigname);
+    
 
-fprintf('Max spike count:    %i \n', max(vec([seq.y])))
-fprintf('Mean spike count:   %d \n', mean(vec([seq.y])))
-fprintf('Freq non-zero bin:  %d \n', mean(vec([seq.y])>0.5))
-
-%%% fit model
-
-params = [];
-% important: set flag to use external input
-if uDim>0;params.model.notes.useB = true;end
-
-params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
-% fprintf('Initial subspace angle:  %d \n', subspace(tp.model.C,params.model.C))
-
-params.model.inferenceHandle = @PLDSLaplaceInference;
-params.opts.algorithmic.EMIterations.maxIter     = maxIter;
-params.opts.algorithmic.EMIterations.maxCPUTime  = inf;
-tic; [params seq varBound EStepTimes MStepTimes] = PopSpikeEM(params,seq); toc
-% fprintf('Final subspace angle:  %d \n', subspace(tp.model.C,params.model.C))
-
-%%% save true and estimated models
-if doSaveres
-    save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
+else % model selection
+    Allmodels = cell(1,numel(nStates));
+    count = 1;
+    for ns = nStates
+        clear resTr
+        [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(ns,seq);
+        doLONO
+        resTr.trial_ll = trial_ll;
+        resTr.Avtrial_ll = mean(mean(trial_ll,2));
+        % save trial_ll along with ns and some state variables
+        % also add option for repeating folds
+        Allmodels{count} = resTr;
+        count = count + 1;
+    end
+    save(['ModelSelection-',resultFilename],'Allmodels')
 end
-doQuickPlots(params, seq, varBound,doSavefig,resultsFigname);
 
 cd(oldFolder)
-
-
 function doQuickPlots(params, seq, varBound,doSavefig,resultsFigname)
 
 % additional checks: check alignment of stim On per stimulus
