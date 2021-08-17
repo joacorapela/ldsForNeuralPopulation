@@ -2,6 +2,7 @@
 cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/VL61/trial_based_LONO/50msBins')
 Training = 'Fold1_V1_PLDSfitRes_21_08_10_14_28_34.mat';
 resTr=load(Training);
+doPlot = 0;
 
 % corresponding LONO params file:
 LONOparams = load(fullfile(resTr.LONO.file.folder,resTr.LONO.file.name));
@@ -12,34 +13,14 @@ LONOparams = load(fullfile(resTr.LONO.file.folder,resTr.LONO.file.name));
 % or try shifting and see the improvement in accuract of test
 FittedFold = str2num(strtok(strtok(Training,'Fold'),'_'));
 
-% make y of the test dataset, leaving out heldoutN
-heldoutN = 4; % id of held out neuron
-% seq_one will only get a y_orig field which is its real spiking rate
-[seq_minusOne,seq_One] = buildTrialBasedSeq_heldout(resTr.config.summarymatfile, resTr.config.binSizems,resTr.config.binWinms,...
-    resTr.config.area,LONOparams.Fold{FittedFold}.testInd,heldoutN);
-
-% inference: get x - before here, prepare the loading matrix (C) and d : eliminate the corresponding row)
-% check if anything else is needed
-resTs_minusOne = resTr;
-resTs_minusOne.params.model.C(heldoutN,:) = [];
-resTs_minusOne.params.model.d(heldoutN) = [];
-resTs_minusOne.seq = seq_minusOne;
-[resTs_minusOne.seq,~] = resTr.params.model.inferenceHandle(resTs_minusOne.params,resTs_minusOne.seq); 
-%                                                                                                                                                                  % (it has now a field named yorig with one row, no u) 
-
-pred = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
-yOrig = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
-for tr = 1:length(seq_One)
-    % for trial tr:
-    z = resTr.params.model.C(heldoutN,:) * resTs_minusOne.seq(tr).posterior.xsm + ...
-        resTr.params.model.d(heldoutN);
-    pred(tr,:) = exp(z);
-    yOrig(tr,:) = seq_One(tr).yOrig;
+nNeurons = size(resTr.params.model.C,1);
+numTestTrials = length(LONOparams.Fold{FittedFold}.testInd);
+LogL = nan(nNeurons,numTestTrials);
+for heldoutN = 1:nNeurons % id of held out neuron
+    trial_ll(heldoutN,:) = heldout_loglike(resTr,LONOparams,FittedFold,heldoutN,doPlot);
 end
-% pred is actually the expectation of the poisson distribution 
-% gamma is hard coded here
-
-figure;plot(nanmean(pred,1));hold on;plot(nanmean(yOrig,1));legend({'prediction','original trace'})
-
-% measure the difference between pred and yOrig:
+% ! careful that trial_ll values were summed over time bins, so, their
+% value is sensitive to the number of time bins !
+% averaged over trials and neuorns
+mean(mean(trial_ll,2))
 
