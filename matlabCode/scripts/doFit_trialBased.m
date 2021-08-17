@@ -62,6 +62,7 @@ else % model selection
         doLONO
         resTr.trial_ll = trial_ll;
         resTr.Avtrial_ll = mean(mean(trial_ll,2));
+        resTr.nStates = ns;
         % save trial_ll along with ns and some state variables
         % also add option for repeating folds
         Allmodels{count} = resTr;
