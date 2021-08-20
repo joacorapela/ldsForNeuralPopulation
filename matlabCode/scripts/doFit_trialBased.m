@@ -19,6 +19,9 @@ else
     % name fold1
     savedir = fullfile(resultdir,animalname,'trial_based_LONO',[num2str(binSizems),'ms','Bins']);
     savename = ['Fold',num2str(LONO.fold),'_',area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
+    if numel(nStates) > 1 % doing model selection
+        savename = ['ModelSelection-',savename];
+    end
 end
 
 
@@ -52,23 +55,29 @@ if numel(nStates) == 1 % evaluatig single model
     end
     doQuickPlots(params, seq, varBound,doSavefig,resultsFigname);
     
-
 else % model selection
     Allmodels = cell(1,numel(nStates));
     count = 1;
-    for ns = nStates
+    for nst = nStates
         clear resTr
-        [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(ns,seq);
-        doLONO
-        resTr.trial_ll = trial_ll;
-        resTr.Avtrial_ll = mean(mean(trial_ll,2));
-        resTr.nStates = ns;
+        FittedFold = LONO.fold;
+        try % it might error with some nsts
+            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq);
+            resTr.LONO = LONO;
+            resTr.config = config;
+            doLONO
+            resTr.trial_ll = trial_ll;
+            resTr.Avtrial_ll = mean(mean(trial_ll,2));
+        catch
+        end
+        resTr.nStates = nst;
         % save trial_ll along with ns and some state variables
         % also add option for repeating folds
         Allmodels{count} = resTr;
         count = count + 1;
     end
-    save(['ModelSelection-',resultFilename],'Allmodels')
+    % wrong savename
+    save(resultsFilename,'Allmodels')
 end
 
 cd(oldFolder)

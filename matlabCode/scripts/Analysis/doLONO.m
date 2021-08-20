@@ -2,6 +2,7 @@
 %cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/VL61/trial_based_LONO/50msBins')
 %Training = 'Fold1_V1_PLDSfitRes_21_08_10_14_28_34.mat';
 %resTr=load(Training);
+%FittedFold = str2num(strtok(strtok(Training,'Fold'),'_'));
 doPlot = 0;
 
 % corresponding LONO params file:
@@ -11,7 +12,7 @@ LONOparams = load(fullfile(resTr.LONO.file.folder,resTr.LONO.file.name));
 % this is the fold used for training
 %%% IMPORTANT: output this to double check using the correct train/test set
 % or try shifting and see the improvement in accuract of test
-FittedFold = str2num(strtok(strtok(Training,'Fold'),'_'));
+
 
 nNeurons = size(resTr.params.model.C,1);
 numTestTrials = length(LONOparams.Fold{FittedFold}.testInd);

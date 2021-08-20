@@ -28,7 +28,7 @@ exptype = {'FF','FF','FF','FF',...
 
 rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
-nStates = 9;
+nStates = 1:35; % make the sweep automatic
 
 for animali = 1:length(animallist)
     animalname = animallist{animali};
@@ -46,10 +46,10 @@ for animali = 1:length(animallist)
         run('doFit_trialBased.m')
     catch
     end    
-    area = 'LM';
-    try
-        run('doFit_trialBased.m')
-    catch
-    end
+     area = 'LM';
+     try
+         run('doFit_trialBased.m')
+     catch
+     end
     
 end
