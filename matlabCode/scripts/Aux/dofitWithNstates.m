@@ -21,7 +21,7 @@ if uDim>0;params.model.notes.useB = true;end
 params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
 % fprintf('Initial subspace angle:  %d \n', subspace(tp.model.C,params.model.C))
 
-params.model.inferenceHandle = @PLDSLaplaceInference;
+params.model.inferenceHandle = @PLDSVariationalInference;
 params.opts.algorithmic.EMIterations.maxIter     = maxIter;
 params.opts.algorithmic.EMIterations.maxCPUTime  = inf;
 tic; [params seq varBound EStepTimes MStepTimes] = PopSpikeEM(params,seq); toc
