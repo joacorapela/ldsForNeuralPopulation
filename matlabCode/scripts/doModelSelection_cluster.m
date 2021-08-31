@@ -1,18 +1,21 @@
 
+% set this variables before running
+%nStates = 9;
+%area = 'V1';
+%animali = 1;
 
-%nStates = 1;
-area = 'V1';
-animali = 1;
+addpath('./Aux')
+%addpath('/mnt/data/Mitra/cache/repos/ini2struct')
+%addpath('/mnt/data/Mitra/cache/repos/struct2ini')
+%addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/Rcode/scripts')
+%addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
-addpath('/mnt/data/Mitra/cache/repos/ini2struct')
-addpath('/mnt/data/Mitra/cache/repos/struct2ini')
-addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/Rcode/scripts')
-addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
+%rootdir  = '/mnt/data/Mitra/figs/';
+%resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
+rootdir  = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
+resultdir = '../../results/';
 
-rootdir  = '/mnt/data/Mitra/figs/';
-resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
-
-cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
+%cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
 
 animallist ={'VL61','VL63','VL55','VL59',...
@@ -73,7 +76,7 @@ config.animalname = animalname;
 config.summarymatfile = summarymatfile;
 
 
-codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
+codeRoot = '../../../pop_spike_dyn';
 oldFolder = cd(codeRoot);
 set_path
 cd(oldFolder)
