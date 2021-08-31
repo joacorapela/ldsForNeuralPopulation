@@ -30,7 +30,8 @@ exptype = {'FF','FF','FF','FF',...
     'FB','FB',...
     'FB','FB','FB','FB','FB'};
 
-rootdir  = '/mnt/data/Mitra/figs/';
+%rootdir  = '/mnt/data/Mitra/figs/';
+rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 
 nFolds = 5;
 Seed = 1;
