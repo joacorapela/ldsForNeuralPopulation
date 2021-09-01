@@ -1,7 +1,7 @@
 
 % set this variables before running
 %nStates = 9;
-%area = 'V1';
+area = 'V1';
 %animali = 1;
 
 addpath('./Aux')
@@ -14,7 +14,7 @@ addpath('./Aux')
 %resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 rootdir  = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 resultdir = '../../results/';
-
+skipifexists = 1;
 %cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
 
@@ -66,6 +66,12 @@ if ~isdir(savedir)
 end
 resultsFilename = [savedir,'/',savename,'.mat'];
 resultsFigname = [savedir,'/',savename,'.pdf'];
+
+if skipifexists
+    if numel(dir([savedir,'/','*nStates',num2str(nStates),'*.mat']))
+        return
+    end
+end
 
 
 seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO);
