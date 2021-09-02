@@ -15,6 +15,7 @@ addpath('./Aux')
 rootdir  = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 resultdir = '../../results/';
 skipifexists = 1;
+splitDelays = 0;
 %cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
 
@@ -74,12 +75,13 @@ if skipifexists
 end
 
 
-seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO);
+seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays);
 config.binSizems= binSizems;
 config.binWinms = binWinms;
 config.area = area;
 config.animalname = animalname;
 config.summarymatfile = summarymatfile;
+config.splitDelays = splitDelays;
 
 
 codeRoot = '../../../pop_spike_dyn';

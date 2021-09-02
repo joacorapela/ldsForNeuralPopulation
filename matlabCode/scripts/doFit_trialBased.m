@@ -32,13 +32,13 @@ resultsFilename = [savedir,'/',savename,'.mat'];
 resultsFigname = [savedir,'/',savename,'.pdf'];
 
 
-seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO);
+seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays);
 config.binSizems= binSizems;
 config.binWinms = binWinms;
 config.area = area;
 config.animalname = animalname;
 config.summarymatfile = summarymatfile;
-
+config.splitDelays = splitDelays;
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 oldFolder = cd(codeRoot);

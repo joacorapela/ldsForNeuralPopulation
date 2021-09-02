@@ -1,6 +1,6 @@
 function [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(xDim,seq)
 
-uDim    = 4;
+uDim    = size(seq(1).u,1);
 % xDim    = 9;
 yDim    = size(seq(1).y,1);
 T       = size(seq(1).T);
