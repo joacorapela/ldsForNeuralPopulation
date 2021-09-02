@@ -3,7 +3,7 @@ function trial_ll = heldout_loglike(resTr,LONOparams,FittedFold,heldoutN,doPlot)
 % make y of the test dataset, leaving out heldoutN
 % seq_one will only get a y_orig field which is its real spiking rate
 [seq_minusOne,seq_One] = buildTrialBasedSeq_heldout(resTr.config.summarymatfile, resTr.config.binSizems,resTr.config.binWinms,...
-    resTr.config.area,LONOparams.Fold{FittedFold}.testInd,heldoutN);
+    resTr.config.area,LONOparams.Fold{FittedFold}.testInd,heldoutN,resTr.config.splitDelays);
 
 % inference: get x - before here, prepare the loading matrix (C) and d : eliminate the corresponding row)
 % check if anything else is needed
