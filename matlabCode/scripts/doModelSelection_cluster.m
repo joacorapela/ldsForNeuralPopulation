@@ -5,6 +5,7 @@ area = 'V1';
 %animali = 1;
 
 addpath('./Aux')
+addpath('./Analysis')
 %addpath('/mnt/data/Mitra/cache/repos/ini2struct')
 %addpath('/mnt/data/Mitra/cache/repos/struct2ini')
 %addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/Rcode/scripts')
