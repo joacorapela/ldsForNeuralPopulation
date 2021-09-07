@@ -65,9 +65,11 @@ else % model selection
             [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq);
             resTr.LONO = LONO;
             resTr.config = config;
-            doLONO
-            resTr.trial_ll = trial_ll;
-            resTr.Avtrial_ll = mean(mean(trial_ll,2));
+            doLONO_and_ValLogLik;
+            resTr.lono_trial_ll = trial_ll;
+            resTr.lono_Avtrial_ll = mean(mean(trial_ll,2));
+            resTr.test_trial_ll = test_trial_ll;
+            resTr.test_Avtrial_ll = mean(mean(test_trial_ll,2));
         catch
         end
         resTr.nStates = nst;
