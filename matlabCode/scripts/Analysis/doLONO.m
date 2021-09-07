@@ -17,9 +17,15 @@ LONOparams = load(fullfile(resTr.LONO.file.folder,resTr.LONO.file.name));
 nNeurons = size(resTr.params.model.C,1);
 numTestTrials = length(LONOparams.Fold{FittedFold}.testInd);
 trial_ll = nan(nNeurons,numTestTrials);
+% if doSplit=1, there could be less trials than expected (the ones with delays 
+% outside of discrete range are ignored. 
 for heldoutN = 1:nNeurons % id of held out neuron
-    trial_ll(heldoutN,:) = heldout_loglike(resTr,LONOparams,FittedFold,heldoutN,doPlot);
+    tll = heldout_loglike(resTr,LONOparams,FittedFold,heldoutN,doPlot);
+    trial_ll(heldoutN,1:size(tll,2)) = tll;
 end
+% removing nan trials: from the loop above if there are less trials than
+% expected 
+trial_ll = trial_ll(:,find(~isnan(sum(trial_ll,1))));
 % ! careful that trial_ll values were summed over time bins, so, their
 % value is sensitive to the number of time bins !
 % averaged over trials and neuorns
