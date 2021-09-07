@@ -15,8 +15,9 @@ addpath('./Analysis')
 %resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 rootdir  = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 resultdir = '../../results/';
-skipifexists = 1;
+skipifexists = 0;
 splitDelays = 0;
+Inference_handle = @PLDSLaplaceInference;
 %cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
 
@@ -47,7 +48,7 @@ summarymatfile = ...
     dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
 
 if ~LONO.do
-    savedir = fullfile(resultdir,animalname,'trial_based',[num2str(binSizems),'ms','Bins']);
+    savedir = fullfile(resultdir,animalname,['trial_based_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
 else
     LONO.file = ...
@@ -58,7 +59,7 @@ else
     end
     % add a summarymatfile name option for LONO - also save in lono folder,
     % name fold1
-    savedir = fullfile(resultdir,animalname,'trial_based_LONO_MS',[num2str(binSizems),'ms','Bins']);
+    savedir = fullfile(resultdir,animalname,['trial_based_MS_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = ['Fold',num2str(LONO.fold),'_',area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
     savename = ['nStates',num2str(nStates),'-',savename];   
 end
@@ -96,7 +97,7 @@ dbstop if error
 clear resTr
 FittedFold = LONO.fold;
 try % it might error with some nsts
-    [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq);
+    [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle);
     resTr.LONO = LONO;
     resTr.config = config;
     doLONO_and_ValLogLik;
@@ -111,6 +112,10 @@ resTr.nStates = nStates;
 % also add option for repeating folds
 ModelSelection = resTr;
 
-save(resultsFilename,'ModelSelection')
+try
+    save(resultsFilename,'ModelSelection')
+catch
+    save(resultsFilename,'ModelSelection','-v7.3')
+end
 cd(oldFolder)
 
