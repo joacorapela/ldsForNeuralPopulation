@@ -2,7 +2,7 @@
 % specs to print: area, animalname, splitdelays, bin size,inference method
 
 % remove old for examining new results
-cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/cluster/old/results')
+cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/cluster')
 animallist ={'VL61','VL63','VL55','VL59',...
     'MPV33','MPV31','MPV34_2',...
     'MPV17','MPV18_2',...
@@ -27,6 +27,9 @@ for st = 1:numel(ll)
     if numel(File)
         res = load(File.name);
         res = res.ModelSelection;
+        if isfield(res,'Avtrial_ll')
+            ll(st) = res.Avtrial_ll;
+        end
     end
 end
-
+figure;plot(1:50,ll,'.-');
