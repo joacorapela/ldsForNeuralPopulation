@@ -1,4 +1,4 @@
-function [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(xDim,seq)
+function [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(xDim,seq,Inference_handle)
 
 uDim    = size(seq(1).u,1);
 % xDim    = 9;
@@ -21,7 +21,8 @@ if uDim>0;params.model.notes.useB = true;end
 params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
 % fprintf('Initial subspace angle:  %d \n', subspace(tp.model.C,params.model.C))
 
-params.model.inferenceHandle = @PLDSVariationalInference;
+%params.model.inferenceHandle = @PLDSVariationalInference;
+params.model.inferenceHandle = Inference_handle; %@PLDSLaplaceInference;
 params.opts.algorithmic.EMIterations.maxIter     = maxIter;
 params.opts.algorithmic.EMIterations.maxCPUTime  = inf;
 tic; [params seq varBound EStepTimes MStepTimes] = PopSpikeEM(params,seq); toc

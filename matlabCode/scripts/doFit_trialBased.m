@@ -6,7 +6,7 @@ summarymatfile = ...
     dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
 
 if ~LONO.do
-    savedir = fullfile(resultdir,animalname,'trial_based',[num2str(binSizems),'ms','Bins']);
+    savedir = fullfile(resultdir,animalname,['trial_based_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
 else
     LONO.file = ...
@@ -17,7 +17,7 @@ else
     end
     % add a summarymatfile name option for LONO - also save in lono folder,
     % name fold1
-    savedir = fullfile(resultdir,animalname,'trial_based_LONO',[num2str(binSizems),'ms','Bins']);
+    savedir = fullfile(resultdir,animalname,['trial_based_MS_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = ['Fold',num2str(LONO.fold),'_',area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
     if numel(nStates) > 1 % doing model selection
         savename = ['ModelSelection-',savename];
@@ -48,7 +48,7 @@ cd(oldFolder)
 dbstop if error
 
 if numel(nStates) == 1 % evaluatig single model
-    [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(nStates,seq);
+    [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle);
     %%% save true and estimated models
     if doSaveres
         save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
@@ -62,7 +62,7 @@ else % model selection
         clear resTr
         FittedFold = LONO.fold;
         try % it might error with some nsts
-            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq);
+            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq,Inference_handle);
             resTr.LONO = LONO;
             resTr.config = config;
             doLONO_and_ValLogLik;
@@ -78,8 +78,11 @@ else % model selection
         Allmodels{count} = resTr;
         count = count + 1;
     end
-    % wrong savename
-    save(resultsFilename,'Allmodels')
+    try 
+        save(resultsFilename,'Allmodels')
+    catch
+        save(resultsFilename,'Allmodels','-v7.3')
+    end
 end
 
 cd(oldFolder)

@@ -30,6 +30,7 @@ rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 nStates = 1:35; % make the sweep automatic
 splitDelays = 0;
+Inference_handle = @PLDSLaplaceInference;
 
 for animali = 1:length(animallist)
     animalname = animallist{animali};
