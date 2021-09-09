@@ -22,7 +22,7 @@ for Neuron = 1:num_neurons
         z = resTr.params.model.C(Neuron,:) * resTs.seq(tr).posterior.xsm + ...
             resTr.params.model.d(Neuron);
         pred(tr,:) = exp(z);
-        yOrig(tr,:) = seq(tr).yOrig;
+        yOrig(tr,:) = seq(tr).y(Neuron,:);
     end
     % pred is actually the expectation of the poisson distribution
     % gamma is hard coded here
