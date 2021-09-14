@@ -30,8 +30,8 @@ exptype = {'FF','FF','FF','FF',...
     'FB','FB',...
     'FB','FB','FB','FB','FB'};
 
-%rootdir  = '/mnt/data/Mitra/figs/';
-rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
+rootdir  = '/mnt/data/Mitra/figs/';
+%rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 
 nFolds = 5;
 Seed = 1;
@@ -44,13 +44,25 @@ for animali = 1:length(animallist)
     summarymatfile = ...
     dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
     res = load(fullfile(summarymatfile.folder,summarymatfile.name));
+    % !! IMPORTANT: make sure the correct trials are correct, given
+    % that they can be from 2 different files.
+    perffile = ...
+    dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/rev_perf*.mat',animallist{animali},preprocessinglist{animali})));
+    if ~isempty(perffile)
+        p = load(fullfile(summarymatfile.folder,perffile.name));
+        res.correctgotrialind = p.correctgotrialind;
+        res.correctnogotrialind = p.correctnogotrialind;
+    end
     
-    % chose valid trials
+    res.correcttrialind = [res.correctgotrialind,res.correctnogotrialind];
+ 
+    
+    % choose valid trials
     nAllTr = size(res.PAllOn,1);
     if strcmp(type,'onlyCorrect_exGrooming')
-        validTrIdx = intersect(res.correcttrialind{1},res.nogroomingind);
+        validTrIdx = intersect(res.correcttrialind,res.nogroomingind);
     elseif strcmp(type,'onlyCorrect')
-        validTrIdx = res.correcttrialind{1};
+        validTrIdx = res.correcttrialind;
     elseif strcmp(type,'exGrooming')
         validTrIdx = res.nogroomingind;
     elseif strcmp(type,'all')
