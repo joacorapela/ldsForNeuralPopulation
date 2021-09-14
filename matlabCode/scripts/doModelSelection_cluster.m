@@ -101,7 +101,8 @@ try % it might error with some nsts
     [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle,config);
     resTr.LONO = LONO;
     resTr.config = config;
-    doLONO_and_ValLogLik;
+    doLONO;
+    %doLONO_and_ValLogLik;
     resTr.lono_trial_ll = trial_ll;
     resTr.lono_Avtrial_ll = mean(mean(trial_ll,2));
     resTr.test_trial_ll = test_trial_ll;
