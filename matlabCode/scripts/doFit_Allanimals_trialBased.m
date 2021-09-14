@@ -3,12 +3,11 @@
 clear all
 %close all
 
-addpath('/mnt/data/Mitra/cache/repos/ini2struct')
-addpath('/mnt/data/Mitra/cache/repos/struct2ini')
-addpath('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/Rcode/scripts')
-
 
 cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
+addpath('./Aux')
+addpath('./Analysis')
+
 
 
 animallist ={'VL61','VL63','VL55','VL59',...
@@ -28,30 +27,37 @@ exptype = {'FF','FF','FF','FF',...
 
 rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
-nStates = 1:35; % make the sweep automatic
-splitDelays = 0;
-Inference_handle = @PLDSLaplaceInference;
 
-for animali = 1:length(animallist)
+nStates = 10; % 1:35 for model selection
+splitDelays = 1; % default 0
+Inference_handle = @PLDSLaplaceInference;
+binSizems = 17; % default 50ms
+binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
+skipmsg = 1;
+doSavefig = 1;
+doSaveres = 1;
+baselineU = 1; % 0: u is laser 1: u is long range input
+
+LONO.do = 1; % if 1 uses the train set only
+LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
+
+
+% default only fb: changed to 1 to go through all
+% However, for reversed stimuli (long range influnce), should separate
+% animals (only indirect area)
+
+for animali = 8:length(animallist) 
     animalname = animallist{animali};
-    binSizems = 50;
-    binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
-    skipmsg = 1;
-    doSavefig = 1;
-    doSaveres = 1;
-    
-    LONO.do = 1; % if 1 uses the train set only
-    LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
-    
+       
     area = 'V1';
     try
         run('doFit_trialBased.m')
     catch
     end
-    area = 'LM';
-    try
-        run('doFit_trialBased.m')
-    catch
-    end
+%     area = 'LM';
+%     try
+%         run('doFit_trialBased.m')
+%     catch
+%     end
     
 end

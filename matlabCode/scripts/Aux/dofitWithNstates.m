@@ -1,4 +1,4 @@
-function [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(xDim,seq,Inference_handle)
+function [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(xDim,seq,Inference_handle,config)
 
 uDim    = size(seq(1).u,1);
 % xDim    = 9;
@@ -7,6 +7,12 @@ T       = size(seq(1).T);
 Trials  = length(seq);
 maxIter = 100;
 doff    = 0.0;
+
+if config.baselineU
+    for i =1:length(seq)
+        seq(i).u(3:end,:) = ~seq(i).u(3:end,:);
+    end
+end
 
 fprintf('Max spike count:    %i \n', max(vec([seq.y])))
 fprintf('Mean spike count:   %d \n', mean(vec([seq.y])))
