@@ -40,6 +40,7 @@ animalname = animallist{animali};
 binSizems = 50;
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
 skipmsg = 1;
+baselineU = 1; % 0: u is laser 1: u is long range input
 
 LONO.do = 1; % if 1 uses the train set only
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
@@ -84,7 +85,7 @@ config.area = area;
 config.animalname = animalname;
 config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
-
+config.baselineU = baselineU;
 
 codeRoot = '../../../pop_spike_dyn';
 oldFolder = cd(codeRoot);
@@ -97,7 +98,7 @@ dbstop if error
 clear resTr
 FittedFold = LONO.fold;
 try % it might error with some nsts
-    [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle);
+    [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle,config);
     resTr.LONO = LONO;
     resTr.config = config;
     doLONO_and_ValLogLik;

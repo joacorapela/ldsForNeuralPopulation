@@ -39,6 +39,7 @@ config.area = area;
 config.animalname = animalname;
 config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
+config.baselineU = baslineU;
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 oldFolder = cd(codeRoot);
@@ -48,7 +49,7 @@ cd(oldFolder)
 dbstop if error
 
 if numel(nStates) == 1 % evaluatig single model
-    [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle);
+    [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle,config);
     %%% save true and estimated models
     if doSaveres
         save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
@@ -62,7 +63,7 @@ else % model selection
         clear resTr
         FittedFold = LONO.fold;
         try % it might error with some nsts
-            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq,Inference_handle);
+            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq,Inference_handle,config);
             resTr.LONO = LONO;
             resTr.config = config;
             doLONO_and_ValLogLik;
