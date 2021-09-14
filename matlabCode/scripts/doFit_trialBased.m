@@ -10,7 +10,7 @@ if ~LONO.do
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
 else
     LONO.file = ...
-        dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_*.mat',animallist{animali},preprocessinglist{animali})));
+        dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_%s*.mat',animallist{animali},preprocessinglist{animali},trialType)));
     % default: latest one
     if length(LONO.file) > 1
         LONO.file = LONO.file(end);
@@ -39,7 +39,8 @@ config.area = area;
 config.animalname = animalname;
 config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
-config.baselineU = baslineU;
+config.baselineU = baselineU;
+config.trialType = trialType;
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 oldFolder = cd(codeRoot);
