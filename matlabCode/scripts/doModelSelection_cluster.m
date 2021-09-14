@@ -41,6 +41,8 @@ binSizems = 50;
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
 skipmsg = 1;
 baselineU = 1; % 0: u is laser 1: u is long range input
+trialType = 'onlyCorrect_exGrooming'; % leave empty if all trials.
+
 
 LONO.do = 1; % if 1 uses the train set only
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
@@ -52,8 +54,8 @@ if ~LONO.do
     savedir = fullfile(resultdir,animalname,['trial_based_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
 else
-    LONO.file = ...
-        dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_*.mat',animallist{animali},preprocessinglist{animali})));
+   LONO.file = ...
+        dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/LONO_%s*.mat',animallist{animali},preprocessinglist{animali},trialType)));
     % default: latest one
     if length(LONO.file) > 1
         LONO.file = LONO.file(end);
@@ -86,6 +88,7 @@ config.animalname = animalname;
 config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
 config.baselineU = baselineU;
+config.trialType = trialType;
 
 codeRoot = '../../../pop_spike_dyn';
 oldFolder = cd(codeRoot);
