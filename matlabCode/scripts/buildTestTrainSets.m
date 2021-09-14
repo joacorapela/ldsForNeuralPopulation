@@ -30,15 +30,16 @@ exptype = {'FF','FF','FF','FF',...
     'FB','FB',...
     'FB','FB','FB','FB','FB'};
 
-rootdir  = '/mnt/data/Mitra/figs/';
-%rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
+%rootdir  = '/mnt/data/Mitra/figs/';
+rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 
 nFolds = 5;
 Seed = 1;
-type = 'onlyCorrect_exGrooming';
+type = 'exGrooming';
 % options: 'all', 'onlyCorrect', 'exGrooming','onlyCorrect_exGrooming'
+noTestSet = 0; % default 0
 
-for animali = 1:length(animallist)
+for animali = 8:length(animallist)
     animalname = animallist{animali};
     
     summarymatfile = ...
@@ -73,17 +74,22 @@ for animali = 1:length(animallist)
     % nTr = size(res.PAllOn,1); % the number of all trials  
     % if exclude grooming, better be done before next line (or can be done
     % later, but number of test/train trials within each fold will be more
-    % variable    
-    Fold = cell(1,nFolds);
-    rng(Seed,'twister')
-    indices = crossvalind('Kfold',nTr,nFolds);    
-    for FoldN = 1:nFolds       
-        Fold{FoldN}.testInd = validTrIdx(find(indices == FoldN))'; 
-        Fold{FoldN}.trainInd = validTrIdx(find(~(indices == FoldN)))';    
-    end  
-    
+    % variable  
+    if ~noTestSet
+        Fold = cell(1,nFolds);
+        rng(Seed,'twister')
+        indices = crossvalind('Kfold',nTr,nFolds);
+        for FoldN = 1:nFolds
+            Fold{FoldN}.testInd = validTrIdx(find(indices == FoldN))';
+            Fold{FoldN}.trainInd = validTrIdx(find(~(indices == FoldN)))';
+        end
+    else
+        for FoldN = 1:nFolds            
+            Fold{FoldN}.trainInd = validTrIdx';
+        end
+    end
     resultsFilename = fullfile(summarymatfile.folder,...
         ['LONO_',type,'_',datestr(now,'yy_mm_dd_HH_MM_SS'),'_',summarymatfile.name]);    
-    save(resultsFilename,'Fold','nFolds','Seed','type');
+    save(resultsFilename,'Fold','nFolds','Seed','type','noTestSet');
 
 end

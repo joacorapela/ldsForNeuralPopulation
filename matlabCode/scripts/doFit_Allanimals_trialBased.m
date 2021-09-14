@@ -37,7 +37,7 @@ skipmsg = 1;
 doSavefig = 1;
 doSaveres = 1;
 baselineU = 1; % 0: u is laser 1: u is long range input
-trialType = 'onlyCorrect_exGrooming'; % leave empty if all trials.
+trialType = 'exGrooming';%'onlyCorrect_exGrooming'; % leave empty if all trials.
 
 LONO.do = 1; % if 1 uses the train set only
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
