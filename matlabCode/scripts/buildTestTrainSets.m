@@ -35,6 +35,8 @@ rootdir = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_
 
 nFolds = 5;
 Seed = 1;
+type = 'onlyCorrect_exGrooming';
+% options: 'all', 'onlyCorrect', 'exGrooming','onlyCorrect_exGrooming'
 
 for animali = 1:length(animallist)
     animalname = animallist{animali};
@@ -43,8 +45,20 @@ for animali = 1:length(animallist)
     dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
     res = load(fullfile(summarymatfile.folder,summarymatfile.name));
     
+    % chose valid trials
+    nAllTr = size(res.PAllOn,1);
+    if strcmp(type,'onlyCorrect_exGrooming')
+        validTrIdx = intersect(res.correcttrialind{1},res.nogroomingind);
+    elseif strcmp(type,'onlyCorrect')
+        validTrIdx = res.correcttrialind{1};
+    elseif strcmp(type,'exGrooming')
+        validTrIdx = res.nogroomingind;
+    elseif strcmp(type,'all')
+        validTrIdx = 1:nAllTr;
+    end
+    nTr = numel(validTrIdx);
     % define test and train trial sets
-    nTr = size(res.PAllOn,1); % the number of all trials
+    % nTr = size(res.PAllOn,1); % the number of all trials  
     % if exclude grooming, better be done before next line (or can be done
     % later, but number of test/train trials within each fold will be more
     % variable    
@@ -52,15 +66,12 @@ for animali = 1:length(animallist)
     rng(Seed,'twister')
     indices = crossvalind('Kfold',nTr,nFolds);    
     for FoldN = 1:nFolds       
-        Fold{FoldN}.testInd = find(indices == FoldN); 
-        Fold{FoldN}.trainInd = find(~(indices == FoldN));
-        
-      %  Fold{FoldN}.train = assignToFold(Fold{FoldN}.trainInd,res);
-      %  Fold{FoldN}.test = assignToFold(Fold{FoldN}.testInd,res);     
+        Fold{FoldN}.testInd = validTrIdx(find(indices == FoldN))'; 
+        Fold{FoldN}.trainInd = validTrIdx(find(~(indices == FoldN)))';    
     end  
     
     resultsFilename = fullfile(summarymatfile.folder,...
-        ['LONO_',datestr(now,'yy_mm_dd_HH_MM_SS'),'_',summarymatfile.name]);    
-    save(resultsFilename,'Fold','nFolds','Seed');
+        ['LONO_',type,'_',datestr(now,'yy_mm_dd_HH_MM_SS'),'_',summarymatfile.name]);    
+    save(resultsFilename,'Fold','nFolds','Seed','type');
 
 end
