@@ -9,12 +9,12 @@ animallist ={'VL61','VL63','VL55','VL59',...
     'VL53','VL52','VL51','VL66','MPV35_2'};
 
 animali = 9;
-binSizems = 50;
+binSizems = 17;
 area = 'V1';
 
 
 animalname = animallist{animali};
-cd(sprintf('%s/trial_based_MS_split_0/%smsBins',animalname,num2str(binSizems)))
+cd(sprintf('%s/trial_based_MS_split_1/%smsBins',animalname,num2str(binSizems)))
 
 % by default reads tghe latest version
 test_ll = nan(1,50);
