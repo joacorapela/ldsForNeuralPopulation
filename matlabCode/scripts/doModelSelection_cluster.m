@@ -1,8 +1,8 @@
 
 % set this variables before running
-%nStates = 9;
+nStates = 8;
 area = 'V1';
-%animali = 1;
+animali = 8;
 
 addpath('./Aux')
 addpath('./Analysis')
@@ -13,10 +13,11 @@ addpath('./Analysis')
 
 %rootdir  = '/mnt/data/Mitra/figs/';
 %resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
-rootdir  = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
+%rootdir  = '/mnt/javadzam/winstor/swc/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
+rootdir = '/nfs/winstor/mrsic_flogel/public/projects/MiJa_20160601_VisualLongRangeConnectivity/Ephys/figs/';
 resultdir = '../../results/';
 skipifexists = 0;
-splitDelays = 0;
+splitDelays = 1;
 Inference_handle = @PLDSLaplaceInference;
 %cd('/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/matlabCode/scripts')
 
@@ -37,11 +38,11 @@ exptype = {'FF','FF','FF','FF',...
     'FB','FB','FB','FB','FB'};
 
 animalname = animallist{animali};
-binSizems = 50;
+binSizems = 17;
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
 skipmsg = 1;
 baselineU = 1; % 0: u is laser 1: u is long range input
-trialType = 'onlyCorrect_exGrooming'; % leave empty if all trials.
+trialType = 'exGrooming'; % leave empty if all trials.
 
 
 LONO.do = 1; % if 1 uses the train set only
@@ -100,7 +101,7 @@ dbstop if error
 
 clear resTr
 FittedFold = LONO.fold;
-try % it might error with some nsts
+%try % it might error with some nsts
     [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nStates,seq,Inference_handle,config);
     resTr.LONO = LONO;
     resTr.config = config;
@@ -110,8 +111,8 @@ try % it might error with some nsts
     resTr.lono_Avtrial_ll = mean(mean(trial_ll,2));
     resTr.test_trial_ll = test_trial_ll;
     resTr.test_Avtrial_ll = mean(mean(test_trial_ll,2));
-catch
-end
+%catch
+%end
 resTr.nStates = nStates;
 % save trial_ll along with ns and some state variables
 % also add option for repeating folds
