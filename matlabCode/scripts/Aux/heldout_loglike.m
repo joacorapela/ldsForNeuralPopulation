@@ -11,7 +11,11 @@ resTs_minusOne = resTr;
 resTs_minusOne.params.model.C(heldoutN,:) = [];
 resTs_minusOne.params.model.d(heldoutN) = [];
 resTs_minusOne.seq = seq_minusOne;
+try
 [resTs_minusOne.seq,~] = resTr.params.model.inferenceHandle(resTs_minusOne.params,resTs_minusOne.seq);
+catch
+    keyboard
+end
 %                                                                                                                                                                  % (it has now a field named yorig with one row, no u)
 
 pred = nan(length(seq_One),resTs_minusOne.seq(1).T); % trials*timebins
@@ -43,5 +47,6 @@ for tr = 1:length(seq_One)
     trial_ll(tr) = sum(ll);
     
 end
+
 end
 
