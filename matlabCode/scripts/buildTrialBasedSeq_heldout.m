@@ -107,4 +107,12 @@ end
 seq(Discard) = [];
 seq_One(Discard) = [];
 
+% temporary
+if 1%config.baselineU
+    for i =1:length(seq)
+        seq(i).u(3:end,:) = ~seq(i).u(3:end,:);
+        seq_One(i).u(3:end,:) = ~seq_One(i).u(3:end,:);
+    end
+end
+
 seq_minusOne = seq;
