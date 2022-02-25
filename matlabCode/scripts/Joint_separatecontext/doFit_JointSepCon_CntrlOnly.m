@@ -33,7 +33,8 @@ if ~isdir(savedir)
 end
 
 splitDelays = 0;
-[seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon_CntrlOnly(summarymatfile, binSizems,binWinms,LONO,splitDelays,perffile,trialType);
+% if Xval.do ==1 seq will be an Xval struct
+[seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon_CntrlOnly(summarymatfile, binSizems,binWinms,LONO,splitDelays,perffile,trialType,Xval);
 
 savename = [savename,'_RND',num2str(RandSeed)];
 savename = [savename,'_',trialType];
@@ -59,51 +60,71 @@ cd(oldFolder)
 
 dbstop if error
 
-if numel(nStates) == 1 % evaluatig single model
+%if numel(nStates) == 1 % evaluatig single model
+
+if Xval.do
+    Xval = seq;
+    Xval.params = cell(1,Xval.nFolds);
+    Xval.varBound = cell(1,Xval.nFolds);
+     for FoldN = 1:Xval.nFolds
+         resultsFilename = [savedir,'/',savename,'_Xval',num2str(FoldN),'.mat'];
+         resultsFigname = [savedir,'/',savename,'_Xval',num2str(FoldN),'.pdf'];
+         
+         [Xval.params{FoldN} ,Xval.train_seq{FoldN},Xval.varBound{FoldN} ,EStepTimes ,MStepTimes] = ...
+             dofitWithNstates_JointSepCon(nStates,Xval.train_seq{FoldN},Inference_handle,config,N_V1,N_LM);
+         if doSaveres
+            save(resultsFilename, 'Xval','config','LONO');
+         end
+        doQuickPlots(Xval.params{FoldN}, Xval.train_seq{FoldN}, Xval.varBound{FoldN},doSavefig,resultsFigname);
+         
+         
+     end
+    
+else
     [params ,seq ,varBound ,EStepTimes ,MStepTimes] = dofitWithNstates_JointSepCon(nStates,seq,Inference_handle,config,N_V1,N_LM);
     %%% save true and estimated models
     if doSaveres
         save(resultsFilename, 'params', 'seq', 'varBound','config','LONO');
     end
     doQuickPlots(params, seq, varBound,doSavefig,resultsFigname);
-    
-else % model selection
-    Allmodels = cell(1,numel(nStates));
-    count = 1;
-    for nst = nStates
-        clear resTr
-        FittedFold = LONO.fold;
-        try % it might error with some nsts
-            [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq,Inference_handle,config);
-            resTr.LONO = LONO;
-            resTr.config = config;
-            doLONO;
-            %doLONO_and_ValLogLik;
-            resTr.lono_trial_ll = trial_ll;
-            resTr.lono_Avtrial_ll = mean(mean(trial_ll,2));
-            resTr.test_trial_ll = test_trial_ll;
-            resTr.test_Avtrial_ll = mean(mean(test_trial_ll,2));
-        catch
-        end
-        resTr.nStates = nst;
-        % save trial_ll along with ns and some state variables
-        % also add option for repeating folds
-        Allmodels{count} = resTr;
-        count = count + 1;
-    end
-    try 
-        save(resultsFilename,'Allmodels')
-    catch
-        save(resultsFilename,'Allmodels','-v7.3')
-    end
 end
+% else % model selection
+%     Allmodels = cell(1,numel(nStates));
+%     count = 1;
+%     for nst = nStates
+%         clear resTr
+%         FittedFold = LONO.fold;
+%         try % it might error with some nsts
+%             [resTr.params ,resTr.seq ,resTr.varBound ,resTr.EStepTimes ,resTr.MStepTimes] = dofitWithNstates(nst,seq,Inference_handle,config);
+%             resTr.LONO = LONO;
+%             resTr.config = config;
+%             doLONO;
+%             %doLONO_and_ValLogLik;
+%             resTr.lono_trial_ll = trial_ll;
+%             resTr.lono_Avtrial_ll = mean(mean(trial_ll,2));
+%             resTr.test_trial_ll = test_trial_ll;
+%             resTr.test_Avtrial_ll = mean(mean(test_trial_ll,2));
+%         catch
+%         end
+%         resTr.nStates = nst;
+%         % save trial_ll along with ns and some state variables
+%         % also add option for repeating folds
+%         Allmodels{count} = resTr;
+%         count = count + 1;
+%     end
+%     try 
+%         save(resultsFilename,'Allmodels')
+%     catch
+%         save(resultsFilename,'Allmodels','-v7.3')
+%     end
+% end
 
 cd(oldFolder)
 function doQuickPlots(params, seq, varBound,doSavefig,resultsFigname)
 
 % additional checks: check alignment of stim On per stimulus
 
-stimOn = sum(seq(1).u(1,:),1); % based on trial 1
+stimOn = sum(seq(1).u(:,:),1); % based on trial 1
 
 f = figure;
 f.Units = 'normalized';

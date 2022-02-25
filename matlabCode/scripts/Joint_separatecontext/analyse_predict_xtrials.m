@@ -2,10 +2,21 @@ animallist ={'MPV17','MPV18_2',...
     'VL53','VL52','VL51','VL66'};
 
 orth = nan; % no orth here
+CntrlOnly = 1; % 0 or not
+
+
+if CntrlOnly
+    UInd = 1;
+else
+    UInd = 1:2;
+end
 
 for animali  = 1%:6
-    
-    cd(['/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/',animallist{animali},'/Joint_trial_based_splitContext/17msBins/'])
+    if CntrlOnly
+        cd(['/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/',animallist{animali},'/Joint_trial_based_splitContext_CntrlOnly/17msBins/'])
+    else
+        cd(['/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/',animallist{animali},'/Joint_trial_based_splitContext/17msBins/'])
+    end
     
     %  d = dir(['*RND*_onlyCorrect_exGrooming_go.mat']);
     filelist = dir(['*RND0_onlyCorrect_exGrooming_go_Xval*.mat']);
@@ -40,14 +51,14 @@ for animali  = 1%:6
                 TrYcntrl{fold}(tr,:,:) =  res.Xval.test_seq{fold}(tr).y(1:NV1Cells,:)';
                 seqLM(end+1).y = res.Xval.test_seq{fold}(tr).y(NV1Cells+1:end,:);
                 seqLM(end).y(pvcell-NV1Cells,:) = [];
-                seqLM(end).u = res.Xval.test_seq{fold}(tr).u(:,:); % 1 0r : if res= slcres
+                seqLM(end).u = res.Xval.test_seq{fold}(tr).u(UInd,:); % 1 0r : if res= slcres
                 seqLM(end).T = res.Xval.test_seq{fold}(tr).T;
                 %  elseif(slcres.seq(tr).u(2,11) - slcres.seq(tr).u(2,10)) > 0 % change to else, if you want all silencing onsets not only lag 2
-            %elseif(res.Xval.test_seq{fold}(tr).u(2,62) - res.Xval.test_seq{fold}(tr).u(2,61)) > 0 % change to else, if you want all silencing onsets not only lag 2
-                elseif(res.Xval.test_seq{fold}(tr).u(2,85) - res.Xval.test_seq{fold}(tr).u(2,84)) > 0
+            elseif(res.Xval.test_seq{fold}(tr).u(2,62) - res.Xval.test_seq{fold}(tr).u(2,61)) > 0 % change to else, if you want all silencing onsets not only lag 2
+            %elseif(res.Xval.test_seq{fold}(tr).u(2,85) - res.Xval.test_seq{fold}(tr).u(2,84)) > 0
                 seqLM_slc(end+1).y = res.Xval.test_seq{fold}(tr).y(NV1Cells+1:end,:);
                 seqLM_slc(end).y(pvcell-NV1Cells,:) = [];
-                seqLM_slc(end).u = res.Xval.test_seq{fold}(tr).u(:,:); % 1 0r : if res= slcres
+                seqLM_slc(end).u = res.Xval.test_seq{fold}(tr).u(UInd,:); % 1 0r : if res= slcres
                 seqLM_slc(end).T = res.Xval.test_seq{fold}(tr).T;
                 
                 TrNum(end+1) = tr;
@@ -94,7 +105,7 @@ for animali  = 1%:6
     
     
     figure;
-    NeuronList = 1:10;[6 11 12 15 18 19 20 23 24 25];
+    NeuronList = [6 11 12 15 18 19 20 23 24 25];
     for NeuronNum = 1:10%1:27
         % trial averaged
         subplot(10,1,NeuronNum);
