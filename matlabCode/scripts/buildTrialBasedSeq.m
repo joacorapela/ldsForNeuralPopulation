@@ -1,4 +1,4 @@
-function [seq] = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays)
+function [seq] = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays,perffile)
 res = load(fullfile(summarymatfile.folder,summarymatfile.name));
 if ~isnan(binWinms)
     error('custized window for trial, not implemented yet')
@@ -8,6 +8,19 @@ if LONO.do
     LONO.fileContents = load(fullfile(LONO.file.folder,LONO.file.name));   
     res = assignToFold(LONO.fileContents.Fold{LONO.fold}.trainInd,res);
 end
+
+% if 1 % condition on trialtype, keep lono 0
+%      if ~isempty(perffile)
+%         p = load(fullfile(summarymatfile.folder,perffile.name));
+%         res.correctgotrialind = p.correctgotrialind;
+%         res.correctnogotrialind = p.correctnogotrialind;
+%     end
+%     
+%     res.correcttrialind = [res.correctgotrialind,res.correctnogotrialind];
+%  
+%     validTrIdx = intersect(res.correcttrialind,res.nogroomingind);
+%     res = assignToFold(validTrIdx,res);
+% end
 
 
 units = eval(sprintf('[res.%s{1}.SingleUnitSpikeTimes,res.%s{2}.SingleUnitSpikeTimes]',area,area)); % cell of length Nneurons, 

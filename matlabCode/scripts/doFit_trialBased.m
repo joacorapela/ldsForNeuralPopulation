@@ -5,6 +5,11 @@
 summarymatfile = ...
     dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/task_*.mat',animallist{animali},preprocessinglist{animali})));
 
+% only for correct trials
+ perffile = ...
+    dir(fullfile(rootdir,sprintf('%s/preprocessing/%s/rev_perf*.mat',animallist{animali},preprocessinglist{animali})));
+
+
 if ~LONO.do
     savedir = fullfile(resultdir,animalname,['trial_based_split_',num2str(splitDelays)],[num2str(binSizems),'ms','Bins']);
     savename = [area,'_PLDSfitRes_',datestr(now,'yy_mm_dd_HH_MM_SS')];
@@ -28,11 +33,30 @@ end
 if ~isdir(savedir)
     mkdir(savedir)
 end
-resultsFilename = [savedir,'/',savename,'.mat'];
-resultsFigname = [savedir,'/',savename,'.pdf'];
+
+seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays,perffile);
 
 
-seq = buildTrialBasedSeq(summarymatfile, binSizems,binWinms,area,LONO,splitDelays);
+if DiscInput
+    seq = AddDiscInput(seq);
+    savename = [savename,'_DiscInput'];
+end
+if dynInput
+    seq = AddinputDyn(seq);
+    savename = [savename,'_dynInput'];
+end
+savename = [savename,'_',trialType];
+if AfromJoint
+    savename = [savename,'_','AfromJoint'];
+end
+
+if strcmp(InitType,'params')
+    savename = [savename,'_RND',num2str(RandSeed)];
+end
+
+config.AfromJoint = AfromJoint;
+config.dynInput = dynInput;
+config.DiscInput = DiscInput;
 config.binSizems= binSizems;
 config.binWinms = binWinms;
 config.area = area;
@@ -41,6 +65,12 @@ config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
 config.baselineU = baselineU;
 config.trialType = trialType;
+config.RandSeed = RandSeed;
+config.InitType = InitType;
+
+resultsFilename = [savedir,'/',savename,'.mat'];
+resultsFigname = [savedir,'/',savename,'.pdf'];
+
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 oldFolder = cd(codeRoot);
@@ -114,7 +144,7 @@ s2.Title.FontWeight='normal';s2.Title.FontSize=9;
 xlabel('timebins');
 
 s3=subplot(2,2,3);
-for state=1:9
+for state=1:8
     hold on;plot(mean(cell2mat(arrayfun(@(x) x.posterior.xsm(state,:), seq,'UniformOutput',0)'),1),'b')
     %hold on;plot(mean(cell2mat(arrayfun(@(x) nanmean(x.y,1), seq,'UniformOutput',0)'),1),'k')
 end
