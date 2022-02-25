@@ -28,37 +28,41 @@ exptype = {'FF','FF','FF','FF',...
 rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 
-nStates = 10; % 1:35 for model selection
-splitDelays = 0; % default 0
+nStates = 16; % 1:35 for model selection
+%splitDelays = 0; % default 0
 Inference_handle = @PLDSLaplaceInference;
-binSizems = 50; % default 50ms
+binSizems = 17; % default 50ms
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
 skipmsg = 1;
 doSavefig = 1;
-doSaveres = 0;
-baselineU = 1; % 0: u is laser 1: u is long range input
-trialType = 'exGrooming';%'onlyCorrect_exGrooming'; % leave empty if all trials.
+doSaveres = 1;
+baselineU = 0; % 0: u is laser 1: u is long range input
+trialType = 'onlyCorrect_exGrooming';%'onlyCorrect_exGrooming'; % leave empty if all trials.
 
 LONO.do = 0; % 1 option not implemented for joint yet
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
-
 
 % default only fb: changed to 1 to go through all
 % However, for reversed stimuli (long range influnce), should separate
 % animals (only indirect area)
 
-for animali = 8:length(animallist) 
+for animali = 8:length(animallist)
     animalname = animallist{animali};
-       
-%    area = 'V1';
-   % try
-        run('doFit_Joint.m')
-    %catch
-    %end
-%     area = 'LM';
-%     try
-%         run('doFit_trialBased.m')
-%     catch
-%     end
+    
+    for lag = 0:7
+        
+        %    area = 'V1';
+        for RandSeed =0:9
+            %try
+                run('doFit_JointSep.m')
+            %catch
+            %end
+        end
+        %     area = 'LM';
+        %     try
+        %         run('doFit_trialBased.m')
+        %     catch
+        %     end
+    end
     
 end
