@@ -31,7 +31,7 @@ resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 nStates = 16; % 1:35 for model selection
 %splitDelays = 0; % default 0
 Inference_handle = @PLDSLaplaceInference;
-binSizems = 10; % default 50ms
+binSizems = 17; % default 50ms
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
 skipmsg = 1;
 doSavefig = 1;
@@ -43,6 +43,11 @@ baselineU = 0; % 0 - option for 1 not implemented
 LONO.do = 0; % 1 option not implemented for joint yet
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
 
+
+Xval.nFolds = 2;
+Xval.Seed = 0;
+Xval.do = 1;
+
 % default only fb: changed to 1 to go through all
 % However, for reversed stimuli (long range influnce), should separate
 % animals (only indirect area)
@@ -53,12 +58,12 @@ for RandSeed =0:10
         %try
         trialType = 'onlyCorrect_exGrooming_go';
         run('doFit_JointSepCon.m')
-        clearvars -except animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+        clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
         
         
         trialType = 'onlyCorrect_exGrooming_nogo';
         run('doFit_JointSepCon.m')
-        clearvars -except animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+        clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
 
         %catch
         %end       

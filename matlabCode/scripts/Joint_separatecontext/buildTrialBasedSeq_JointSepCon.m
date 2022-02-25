@@ -1,4 +1,4 @@
-function [seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon(summarymatfile, binSizems,binWinms,LONO,splitDelays,perffile,trialType)
+function [seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon(summarymatfile, binSizems,binWinms,LONO,splitDelays,perffile,trialType,Xval)
 res = load(fullfile(summarymatfile.folder,summarymatfile.name));
 if ~isnan(binWinms)
     error('custized window for trial, not implemented yet')
@@ -109,6 +109,30 @@ end
 % end
 
 seq(Discard) = [];
+
+%%%% divide into training and test sets
+
+
+if Xval.do
+    
+    Xval.train_seq = cell(1,Xval.nFolds);
+    Xval.test_seq = cell(1,Xval.nFolds);
+  
+    
+    rng(Xval.Seed,'twister')
+    indices = crossvalind('Kfold',numel(seq),Xval.nFolds);
+    
+    for FoldN = 1:Xval.nFolds
+        Xval.Fold{FoldN}.testInd = (find(indices == FoldN))';
+        Xval.Fold{FoldN}.trainInd = (find(~(indices == FoldN)))';
+        
+        Xval.train_seq{FoldN} = seq(Xval.Fold{FoldN}.trainInd);
+        Xval.test_seq{FoldN} = seq(Xval.Fold{FoldN}.testInd);
+    end
+    
+    % Xval.train_seq{1} to access previous seq
+    seq = Xval;
+end
 
 % double check: ind(arrayfun(@(x)
 % numel(find(isnan(x.u))),seq,'UniformOutput',1)) = Discard
