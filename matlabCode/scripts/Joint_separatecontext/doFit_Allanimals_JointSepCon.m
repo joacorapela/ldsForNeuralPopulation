@@ -44,7 +44,7 @@ LONO.do = 0; % 1 option not implemented for joint yet
 LONO.fold = 1; % fold number to use for now keep a number, (not implemented) if 'all' uses and saves all: put an if below?
 
 
-Xval.nFolds = 2;
+Xval.nFolds = 5;
 Xval.Seed = 0;
 Xval.do = 1;
 
@@ -52,21 +52,28 @@ Xval.do = 1;
 % However, for reversed stimuli (long range influnce), should separate
 % animals (only indirect area)
 for RandSeed =0:10
-    for animali = 8%:13%length(animallist)
+    for animali = 8:13%length(animallist)
         animalname = animallist{animali};
         close all
-        %try
-        trialType = 'onlyCorrect_exGrooming_go';
-        run('doFit_JointSepCon.m')
-        clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
-        
-        
-        trialType = 'onlyCorrect_exGrooming_nogo';
-        run('doFit_JointSepCon.m')
-        clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+        try
+            % specify models to fit: Go/No-go or contrl_only/+laser
+            
+            trialType = 'onlyCorrect_exGrooming_go';
+            run('doFit_JointSepCon_CntrlOnly.m')
+            clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+            
+            
+            trialType = 'onlyCorrect_exGrooming_go';
+            run('doFit_JointSepCon.m')
+            clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
 
-        %catch
-        %end       
+            close all
+            %         trialType = 'onlyCorrect_exGrooming_nogo';
+            %         run('doFit_JointSepCon_CntrlOnly.m')
+            %         clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+            
+        catch
+        end
         
     end
 end
