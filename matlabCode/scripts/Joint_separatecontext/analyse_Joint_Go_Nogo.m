@@ -200,16 +200,111 @@ wnogo=[reshape(abs(allA(:,1:8,1:8,2)),1,[]);reshape(abs(allA(:,1:8,9:16,2)),1,[]
 
 figure;subplot(1,2,1);boxplot(wgo');subplot(1,2,2);boxplot(wnogo')
 ranksum(wgo(2,:),wnogo(2,:))
+%% dimensionality of interareal and intraareal subspaces: both go and nogo pooled
+
+
+
+varExpPC_LV = nan(2,6,8);
+varExpPC_LL = nan(2,6,8);
+varExpPC_VV = nan(2,6,8);
+for animali  =[1 2 3 4 5 6]%1:6
+    for lag = 1:2      
+        [c,s,l]=pca(squeeze(allA(animali,1:8,9:16,lag)),'Centered',0); % originally it was transpose, makes sense?
+        varExpPC_LV(lag,animali,:) = l/sum(l); % almost 1d        
+        
+        [c,s,l]=pca(squeeze(allA(animali,1:8,1:8,lag)),'Centered',0); % originally it was transpose, makes sense?
+        varExpPC_VV(lag,animali,:) = l/sum(l); % almost 1d        
+        
+        [c,s,l]=pca(squeeze(allA(animali,9:16,9:16,lag)),'Centered',0); % originally it was transpose, makes sense?
+        varExpPC_LL(lag,animali,:) = l/sum(l); % almost 1d        
+    end
+end
+
+f=figure;boxplot([reshape(varExpPC_LV(:,:,1),1,[]);reshape(varExpPC_LV(:,:,2),1,[]);reshape(varExpPC_LV(:,:,3),1,[]);reshape(varExpPC_LV(:,:,4),1,[]);reshape(varExpPC_LV(:,:,5),1,[]);...
+    reshape(varExpPC_LV(:,:,6),1,[]);reshape(varExpPC_LV(:,:,7),1,[]);reshape(varExpPC_LV(:,:,8),1,[])]','Widths',.4);
+set(f.Children,'YLim',[0,1]);f.Children.Title.String = 'A_{lv}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+f=figure;boxplot([reshape(varExpPC_VV(:,:,1),1,[]);reshape(varExpPC_VV(:,:,2),1,[]);reshape(varExpPC_VV(:,:,3),1,[]);reshape(varExpPC_VV(:,:,4),1,[]);reshape(varExpPC_VV(:,:,5),1,[]);...
+    reshape(varExpPC_VV(:,:,6),1,[]);reshape(varExpPC_VV(:,:,7),1,[]);reshape(varExpPC_VV(:,:,8),1,[])]','Widths',.4);
+set(f.Children,'YLim',[0,.5]);f.Children.Title.String = 'A_{vv}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+f=figure;boxplot([reshape(varExpPC_LL(:,:,1),1,[]);reshape(varExpPC_LL(:,:,2),1,[]);reshape(varExpPC_LL(:,:,3),1,[]);reshape(varExpPC_LL(:,:,4),1,[]);reshape(varExpPC_LL(:,:,5),1,[]);...
+    reshape(varExpPC_LL(:,:,6),1,[]);reshape(varExpPC_LL(:,:,7),1,[]);reshape(varExpPC_LL(:,:,8),1,[])]','Widths',.4);
+set(f.Children,'YLim',[0,.5]);f.Children.Title.String = 'A_{ll}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+%% determine go or nogo:
+
+lag =1 ; % 1=go, 2=nogo
+type = 'box2';%'box or 'erbar'
+
+mat = squeeze(varExpPC_LV(lag,:,:));
+f=figure;
+if strcmp(type,'box')
+    boxplot(mat,'Widths',.4);
+else
+   errorbar([],nanmean(mat,1),2*nanstd(mat)/sqrt(size(mat,1)),'color','k')
+end
+set(f.Children,'YLim',[0,1]);set(f.Children,'XLim',[0,9]);f.Children.Title.String = 'A_{lv}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+mat = squeeze(varExpPC_VV(lag,:,:));
+f=figure;
+if strcmp(type,'box')
+    boxplot(mat,'Widths',.4);
+else
+   errorbar([],nanmean(mat,1),2*nanstd(mat)/sqrt(size(mat,1)),'color','k')
+end
+set(f.Children,'YLim',[0,.5]);set(f.Children,'XLim',[0,9]);f.Children.Title.String = 'A_{vv}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+
+mat = squeeze(varExpPC_LL(lag,:,:));
+f=figure;
+if strcmp(type,'box')
+    boxplot(mat,'Widths',.4);
+else
+   errorbar([],nanmean(mat,1),2*nanstd(mat)/sqrt(size(mat,1)),'color','k')
+end
+set(f.Children,'YLim',[0,.5]);set(f.Children,'XLim',[0,9]);f.Children.Title.String = 'A_{ll}';
+f.Children.YLabel.String = 'variance explained(lambda_i)'; f.Children.XLabel.String = 'i';set(f,'color','white');
+
+
+%% go vs nogo comparison
+f = figure; set(f,'color','white');
+ComMat = varExpPC_VV;
+
+for lag = 1:2
+    mat = squeeze(ComMat(lag,:,:));
+    if lag == 1
+   % hold on;plot(nanmean(mat,1),'g');
+    hold on;errorbar((1:8)+0.1,nanmean(mat,1),2*nanstd(mat)/sqrt(size(mat,1)),'color','g')
+   % hold on;boxplot(mat,'Widths',.4,'Colors','g','Positions',(1:8)-0.2);
+
+    else
+       %  hold on;boxplot(mat,'Widths',.4,'Colors','r','Positions',(1:8)+0.2);
+         hold on;errorbar((1:8)-0.1,nanmean(mat,1),2*nanstd(mat)/sqrt(size(mat,1)),'color','r')
+    end
+    
+end
+for i = 1%:8
+    p = signrank(ComMat(1,:,i),ComMat(2,:,i));
+    hold on;text(i,0.75,['p = ',num2str(p)])
+end
+
 %% V1 local modes and interareal
 %here we see the mode that is affected in V1 is aligned with fat or slow
 %local direction. Important part is go/nogo difference: if there is a
 %consistent pattern in go and not nogo
 
-figure;
+f = figure;
 all_proj = [];
 all_lambda_mag = [];
 all_lambda_ang = [];
 vis_vs_sharedMode = nan(2,6);
+av = nan(1,8);
 
 norm_B = nan(2,6); % have to show that the lack of pattern in nogo is not due to noise and B being small
 for animali  =[1 2 3 4 5 6]%1:6
@@ -227,7 +322,7 @@ for animali  =[1 2 3 4 5 6]%1:6
         % subplot(2,6,animali);hold on;plot(l/norm(l)); % almost 1d
         LMdir = c(:,1);
         
-        B = s(:,1);%squeeze(allA(animali,1:8,9:16,lag))*LMdir; % I think this is the direction in V1 that things mve along, when LM activity moves along the com dimension
+        B = s(:,1);% or squeeze(allA(animali,1:8,9:16,lag))*LMdir; % I think this is the direction in V1 that things mve along, when LM activity moves along the com dimension
         vis_vs_sharedMode(lag,animali) = (B/norm(B))'*(allB(animali,1:8,lag)'/norm(allB(animali,1:8,lag)'));
         
         norm_B(lag,animali) = norm(B);
@@ -237,13 +332,13 @@ for animali  =[1 2 3 4 5 6]%1:6
         [~,Ord]=sort(abs((diag(v))));
         proj = abs(inv(u(:,:)) * B);
         proj = proj(Ord);
-        subplot(2,6,animali)
+      % subplot(2,6,animali)
         if lag == 1
-       %         subplot(1,2,1)
-            hold on;plot(proj./norm(proj),'g')
+                subplot(1,2,1)
+            hold on;plot(proj./norm(proj),'color',[.7 .7 .7]) % or green
             hold on;plot(abs((diag(v(Ord,Ord)))),'k')
         else
-        %         subplot(1,2,2)
+                 subplot(1,2,2)
             hold on;plot(proj./norm(proj),'r')
             hold on;plot(abs((diag(v(Ord,Ord)))),'k')
         end
@@ -252,6 +347,7 @@ for animali  =[1 2 3 4 5 6]%1:6
         % subplot(2,6,animali+6); hold on;scatter(abs(diag(v(Ord,Ord))),proj./norm(proj)); hold on;plot(abs(diag(v(Ord,Ord))),proj./norm(proj))
         
         if lag ==1
+            av = [av;(proj./norm(proj))'];
             all_proj = [all_proj;proj./norm(proj)];
             all_lambda_mag = [all_lambda_mag;abs((diag(v(Ord,Ord))))];
             all_lambda_ang = [all_lambda_ang;imag((diag(v(Ord,Ord))))];
@@ -262,8 +358,12 @@ for animali  =[1 2 3 4 5 6]%1:6
     legend
 end
 
+av(1,:) = [];
+s = subplot(1,2,1); %hold on;plot(nanmean(av),'Color',[0 .7 0],'LineWidth',2);
+s.YLabel.String = '|lambda|'; s.XLabel.String = 'states';set(f,'color','white');
 
-figure;scatter(all_lambda_mag,all_proj)
+f = figure; scatter(all_lambda_mag,all_proj,100,'.')
+f.Children.YLabel.String = 'alpha'; f.Children.XLabel.String = '|lambda|';set(f,'color','white');
 [r,p]= corrcoef(all_lambda_mag,all_proj)
 %% LM local modes and interareal
 
@@ -273,7 +373,7 @@ all_lambda_mag = [];
 all_lambda_ang = [];
 vis_vs_sharedMode = nan(2,6);
 
-varExpPC = nan(2,6,8);
+varExpPC_LV = nan(2,6,8);
 
 
 for animali  = [1 2 3 4 5 6]%1:6
@@ -284,7 +384,7 @@ for animali  = [1 2 3 4 5 6]%1:6
         [c,s,l]=pca(squeeze(allA(animali,1:8,9:16,lag)),'Centered',0);
         % not sure if transpose neede or not
       %   hold on;plot(l/norm(l)); % almost 1d
-        varExpPC(lag,animali,:) = l/sum(l);
+        varExpPC_LV(lag,animali,:) = l/sum(l);
         LMdir = c(:,1);
         vis_vs_sharedMode(lag,animali) = (LMdir/norm(LMdir))'*(allB(animali,9:16,lag)'/norm(allB(animali,9:16,lag)'));
         
@@ -313,7 +413,7 @@ end
 figure;scatter(all_lambda_mag,all_proj)
 [r,p]= corrcoef(all_lambda_mag,all_proj)
 
-figure;boxplot([reshape(varExpPC(:,:,1),1,[]);reshape(varExpPC(:,:,2),1,[]);reshape(varExpPC(:,:,3),1,[]);reshape(varExpPC(:,:,4),1,[]);reshape(varExpPC(:,:,5),1,[]);...
-    reshape(varExpPC(:,:,6),1,[]);reshape(varExpPC(:,:,7),1,[]);reshape(varExpPC(:,:,8),1,[])]')
+figure;boxplot([reshape(varExpPC_LV(:,:,1),1,[]);reshape(varExpPC_LV(:,:,2),1,[]);reshape(varExpPC_LV(:,:,3),1,[]);reshape(varExpPC_LV(:,:,4),1,[]);reshape(varExpPC_LV(:,:,5),1,[]);...
+    reshape(varExpPC_LV(:,:,6),1,[]);reshape(varExpPC_LV(:,:,7),1,[]);reshape(varExpPC_LV(:,:,8),1,[])]')
 
 %% maybe check alignment with inputs as well
