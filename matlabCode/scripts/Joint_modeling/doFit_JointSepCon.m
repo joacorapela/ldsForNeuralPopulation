@@ -27,7 +27,9 @@ end
 [seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon(summarymatfile, binSizems,binWinms,splitDelays,perffile,trialType,Xval,CntrlOnly);
 
 savename = [savename,'_splt',num2str(splitDelays)];
-savename = [savename,'_RND',num2str(RandSeed)];
+if strcmp(initMethod,'r')
+    savename = [savename,'_RND',num2str(RandSeed)];
+end
 savename = [savename,'_',trialType];
 
 config.binSizems= binSizems;
@@ -38,6 +40,7 @@ config.summarymatfile = summarymatfile;
 config.splitDelays = splitDelays;
 config.baselineU = baselineU;
 config.trialType = trialType;
+config.initMethod = initMethod;
 config.RandSeed = RandSeed;
 config.CntrlOnly = CntrlOnly;
 config.BconstrainMethod = BconstrainMethod;
