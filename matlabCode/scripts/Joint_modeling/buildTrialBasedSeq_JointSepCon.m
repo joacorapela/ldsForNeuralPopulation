@@ -57,10 +57,11 @@ end
 if  splitDelays
     % error('splitDelay 0 not implemented')
     nInputs = 9;
-    res.allLaserD = makeDiscreteDelayInd(res.LaserDelayBinned);
 else
     nInputs =2;
 end
+res.allLaserD = makeDiscreteDelayInd(res.LaserDelayBinned);
+
 Discard = [];
 noLaser = [];
 for Tr = 1:size(res.PAllOn,1)
@@ -140,15 +141,20 @@ if ~CntrlOnly
         if strcmp(Xval.method,'rand')
             rng(Xval.Seed,'twister')
             indices = crossvalind('Kfold',numel(seq),Xval.nFolds);
-        elseif strcmp(Xval.method,'lag')
+        elseif strcmp(Xval.method,'lag') & ~splitDelays
             indices = res.allLaserD; % contains either 0-7 for lags or nan for control trials
             % also, divide nan values (control trials) in between the
             % folds, randomly [test contains 1 lag + 1/8 of control trials]
             CnrlIndices = find(isnan(indices));
             rng(Xval.Seed,'twister')
             indices(CnrlIndices) = randi(8,[1,numel(CnrlIndices)])-1;
-            % bringing the 0-7 range to 1-8 for fold assignment
+            % bringing the 0-7 range to 1-8 for fold assignment. The
+            % unassigned lasers are not discarded when ~splitDelays. But
+            % they will get a value of 9, and will never be in test, always
+            % in training set
             indices = indices + 1;
+        elseif strcmp(Xval.method,'lag') & splitDelays
+            error('lag method cant work when splitting delays (test and train models different)')    
         end
         
         for FoldN = 1:Xval.nFolds
