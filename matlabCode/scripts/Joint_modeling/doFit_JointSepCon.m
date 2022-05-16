@@ -124,15 +124,15 @@ cd(oldFolder)
 function doQuickPlots(params, seq, varBound,doSavefig,resultsFigname,CntrlOnly)
 
 % additional checks: check alignment of stim On per stimulus
-if ~CntrlOnly
-    stimOn = sum(seq(1).u(1:2,:),1); % based on trial 1
-else
-    stimOn = sum(seq(1).u(1,:),1); % based on trial 1
-end
+%if ~CntrlOnly
+%    stimOn = sum(seq(1).u(1:2,:),1); % based on trial 1
+%else
+stimOn = sum(seq(1).u(1,:),1); % based on trial 1
+%end
 
 f = figure;
 f.Units = 'normalized';
-f.Position = [0.3988 0.0590 0.4446 0.8200];
+f.Position = [0.3988 0.0590 0.7*0.4446 .7*0.8200];
 set(f,'Color','w')
 f.Name = [resultsFigname];
 
@@ -149,7 +149,7 @@ s2.Title.FontWeight='normal';s2.Title.FontSize=9;
 xlabel('timebins');
 
 s3=subplot(2,2,3);
-for state=1:9
+for state=1:size(params.model.A,1)
     hold on;plot(mean(cell2mat(arrayfun(@(x) x.posterior.xsm(state,:), seq,'UniformOutput',0)'),1),'b')
     %hold on;plot(mean(cell2mat(arrayfun(@(x) nanmean(x.y,1), seq,'UniformOutput',0)'),1),'k')
 end
