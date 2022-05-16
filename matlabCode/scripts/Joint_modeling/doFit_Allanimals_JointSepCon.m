@@ -45,6 +45,8 @@ Xval.method = 'lag'; % options:'rand': random assignment to nFolds values, 'lag'
                      % when 'lag', one silencing time lag + 1/8 of control
                      % trials (randomly selected) are left out at each Fold
                      % as the test set
+                     % at the moment, lag only works whem splitDelays = 0
+                     % (can't extract B for the leftout lag otherwise)
 Xval.nFolds = 5;
 Xval.Seed = 0;
 Xval.do = 1;
