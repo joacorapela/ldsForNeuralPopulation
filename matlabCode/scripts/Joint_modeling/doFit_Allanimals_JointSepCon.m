@@ -41,7 +41,10 @@ baselineU = 0; % 0 - option for 1 not implemented
 initMethod = 'n'; % 'r' for random, 'n' for 'NucNormMin'
 % trialType = 'onlyCorrect_exGrooming_go';%'onlyCorrect_exGrooming'; % leave empty if all trials.
 
-
+Xval.method = 'lag'; % options:'rand': random assignment to nFolds values, 'lag': leave one lagout, nFolds not relevant, only when CntrlOnly == 0  
+                     % when 'lag', one silencing time lag + 1/8 of control
+                     % trials (randomly selected) are left out at each Fold
+                     % as the test set
 Xval.nFolds = 5;
 Xval.Seed = 0;
 Xval.do = 1;
@@ -52,6 +55,10 @@ if strcmp(initMethod,'r')
     RandSeedRange = 0:10;
 elseif strcmp(initMethod,'n')
     RandSeedRange = 0;
+end
+
+if strcmp(Xval.method,'lag')
+    Xval.nFolds = 8;
 end
 
 % default only fb: changed to 1 to go through all

@@ -128,7 +128,7 @@ if splitDelays
 end
 
 seq(Discard) = [];
-
+res.allLaserD(Discard) = [];
 %%%% divide into training and test sets
 if ~CntrlOnly
     
@@ -137,9 +137,19 @@ if ~CntrlOnly
         Xval.train_seq = cell(1,Xval.nFolds);
         Xval.test_seq = cell(1,Xval.nFolds);
         
-        
-        rng(Xval.Seed,'twister')
-        indices = crossvalind('Kfold',numel(seq),Xval.nFolds);
+        if strcmp(Xval.method,'rand')
+            rng(Xval.Seed,'twister')
+            indices = crossvalind('Kfold',numel(seq),Xval.nFolds);
+        elseif strcmp(Xval.method,'lag')
+            indices = res.allLaserD; % contains either 0-7 for lags or nan for control trials
+            % also, divide nan values (control trials) in between the
+            % folds, randomly [test contains 1 lag + 1/8 of control trials]
+            CnrlIndices = find(isnan(indices));
+            rng(Xval.Seed,'twister')
+            indices(CnrlIndices) = randi(8,[1,numel(CnrlIndices)])-1;
+            % bringing the 0-7 range to 1-8 for fold assignment
+            indices = indices + 1;
+        end
         
         for FoldN = 1:Xval.nFolds
             Xval.Fold{FoldN}.testInd = (find(indices == FoldN))';
@@ -154,6 +164,9 @@ if ~CntrlOnly
     end
 else
     if Xval.do
+        if  strcmp(Xval.method,'lag')
+            error('lag method doesnt exist for CntrlOnly, change to rand')
+        end
         
         seqcntrl = seq;
         rest = seq;

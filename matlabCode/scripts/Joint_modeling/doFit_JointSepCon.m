@@ -55,9 +55,13 @@ dbstop if error
 %if numel(nStates) == 1 % evaluatig single model
 
 if Xval.do
-    
-    resultsFilename = [savedir,'/',savename,'_',num2str(Xval.nFolds),'FoldXval','.mat'];
-
+    if strcmp(Xval.method,'rand')
+        resultsFilename = [savedir,'/',savename,'_',num2str(Xval.nFolds),'FoldXval','.mat'];
+    elseif strcmp(Xval.method,'lag')
+        resultsFilename = [savedir,'/',savename,'_','LOLOXval','.mat']; % leave one lag out
+    else
+        error('specify Xval method')
+    end
     Xval = seq;
     Xval.params = cell(1,Xval.nFolds);
     Xval.varBound = cell(1,Xval.nFolds);
