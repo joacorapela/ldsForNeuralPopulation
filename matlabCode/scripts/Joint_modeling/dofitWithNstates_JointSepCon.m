@@ -31,12 +31,13 @@ if config.splitDelays
     params.model.notes.nMaskDims = 8;
 end
 
-%params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
-rng(config.RandSeed,'twister')
-params = PLDSInitialize(seq, xDim, 'params', params);
+if strcmp(config.initMethod,'n')
+    params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
+elseif strcmp(config.initMethod,'r')
+    rng(config.RandSeed,'twister')
+    params = PLDSInitialize(seq, xDim, 'params', params);
+end
 % fprintf('Initial subspace angle:  %d \n', subspace(tp.model.C,params.model.C))
-
-% params.seed = RandSeed;
 
 %%% try giving C a mask
 params.model.notes.useCMask = 1;

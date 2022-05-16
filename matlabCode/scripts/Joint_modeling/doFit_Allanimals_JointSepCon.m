@@ -38,6 +38,7 @@ skipmsg = 1;
 doSavefig = 1;
 doSaveres = 1;
 baselineU = 0; % 0 - option for 1 not implemented
+initMethod = 'n'; % 'r' for random, 'n' for 'NucNormMin'
 % trialType = 'onlyCorrect_exGrooming_go';%'onlyCorrect_exGrooming'; % leave empty if all trials.
 
 
@@ -47,10 +48,16 @@ Xval.do = 1;
 
 CntrlOnly = 0;
 
+if strcmp(initMethod,'r')
+    RandSeedRange = 0:10;
+elseif strcmp(initMethod,'n')
+    RandSeedRange = 0;
+end
+
 % default only fb: changed to 1 to go through all
 % However, for reversed stimuli (long range influnce), should separate
 % animals (only indirect area)
-for RandSeed =0%:10
+for RandSeed = RandSeedRange
     for animali = 8%:13%length(animallist)
         animalname = animallist{animali};
 %        close all
@@ -64,7 +71,8 @@ for RandSeed =0%:10
             
             trialType = 'onlyCorrect_exGrooming_go';
             run('doFit_JointSepCon.m')
-            clearvars -except CntrlOnly Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType BconstrainMethod splitDelays
+            clearvars -except CntrlOnly Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO ...
+                RandSeed animali animalname trialType BconstrainMethod splitDelays initMethod RandSeedRange
 
             close all
             %         trialType = 'onlyCorrect_exGrooming_nogo';
