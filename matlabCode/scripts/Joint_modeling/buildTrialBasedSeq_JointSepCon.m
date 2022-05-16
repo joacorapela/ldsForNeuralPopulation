@@ -55,9 +55,9 @@ end
 
 
 if  splitDelays
-    error('splitDelay 0 not implemented')
-    %   nInputs = 18;
-    %   res.allLaserD = makeDiscreteDelayInd(res.LaserDelayBinned);
+    % error('splitDelay 0 not implemented')
+    nInputs = 10;
+    res.allLaserD = makeDiscreteDelayInd(res.LaserDelayBinned);
 else
     nInputs =2;
 end
@@ -92,9 +92,28 @@ for Tr = 1:size(res.PAllOn,1)
         lstrace(find(binEnd>res.LStepTimeStampOn(LaserTrInd) & binEnd<(res.LStepTimeStampOn(LaserTrInd)+LaserDur))) = 1;
     end
     
+    % find laserD, if not splitting input, =0, otherwise value in [0-7]
+    % depending on laser delay wrt the stimulus onset
+    % doublecheck that nans are aligned with no laser
+    if ~splitDelays
+        laserD = 0;
+    else
+        laserD = res.allLaserD(Tr); % could be nan (no laser), 0-7 Delays, or 8 : dicard the trial
+        if isnan(laserD)
+            laserD = 0;
+            noLaser = [noLaser,Tr];
+        elseif laserD == 8
+            lstrace = nan(size(lstrace));
+            laserD = 0;
+            Discard = [Discard,Tr];
+        end
+        % TODO: assign delay values in ms here as well. (in a separate
+        % array)
+    end
+    
     if 1%~numel(LaserTrInd) % other option for when only using cntrl trials
         seq(Tr).u(1,:) = pdtrace;
-        seq(Tr).u(2,:) = lstrace;
+        seq(Tr).u(2+laserD,:) = lstrace;
     else
         Discard = [Discard,Tr];
     end
@@ -102,11 +121,11 @@ for Tr = 1:size(res.PAllOn,1)
     seq(Tr).T = T;
 end
 
-% if splitDelays
-%     if any(find(arrayfun(@(x) sum(sum(x.u(3:end,:))) == 0,seq,'UniformOutput',1)) == noLaser) == 0
-%         error('error in extracting laser delays. No laser trials dontmatch up')
-%     end
-% end
+if splitDelays
+    if any(find(arrayfun(@(x) sum(sum(x.u(2:end,:))) == 0,seq,'UniformOutput',1)) == noLaser) == 0
+        error('error in extracting laser delays. No laser trials dontmatch up')
+    end
+end
 
 seq(Discard) = [];
 
@@ -139,7 +158,7 @@ else
         seqcntrl = seq;
         rest = seq;
         for tr = numel(seq):-1:1
-            if sum(seq(tr).u(2,:)) ~= 0
+            if sum(sum(seq(tr).u(2:end,:))) ~= 0
                 seqcntrl(tr)=[];
             else
                 rest(tr)=[];
@@ -164,7 +183,7 @@ else
             
             % clear u column of control trials
             for tr = 1:numel(Xval.train_seq{FoldN})
-                Xval.train_seq{FoldN}(tr).u(2,:) = [];
+                Xval.train_seq{FoldN}(tr).u(2:end,:) = [];
             end
             
             
@@ -175,10 +194,10 @@ else
     else
         
         for tr = numel(seq):-1:1
-            if sum(seq(tr).u(2,:)) ~= 0
+            if sum(sum(seq(tr).u(2:end,:))) ~= 0
                 seq(tr)=[];
             else
-                seq(tr).u(2,:) = [];
+                seq(tr).u(2:end,:) = [];
             end
         end
         

@@ -25,6 +25,11 @@ fprintf('init params seed: %d\n', config.RandSeed)
 params = [];
 % important: set flag to use external input
 if uDim>0;params.model.notes.useB = true;end
+params.model.notes.maskB = true;
+params.model.notes.maskBmethod = config.BconstrainMethod;
+if config.splitDelays
+    params.model.notes.nMaskDims = 8;
+end
 
 %params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
 rng(config.RandSeed,'twister')
@@ -46,11 +51,7 @@ end
 %params.opts.algorithmic.EMIterations = touchField(params.opts.algorithmic.EMIterations,'abortDecresingVarBound',false);
 
 params.model.C = params.model.C.*params.model.CMask;
-if uDim>1;params.model.notes.maskB = 1;end 
-% temp: for 10 states
-% toAdd=  blkdiag(0.1+zeros(5,5),0.1+zeros(5,5))- 0.2*eye(10);
-% params.model.A = params.model.A + toAdd;
-% 
+
 
 %params.model.inferenceHandle = @PLDSVariationalInference;
 params.model.inferenceHandle = Inference_handle; %@PLDSLaplaceInference;
