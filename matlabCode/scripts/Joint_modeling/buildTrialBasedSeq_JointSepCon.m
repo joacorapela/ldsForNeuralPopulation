@@ -56,7 +56,7 @@ end
 
 if  splitDelays
     % error('splitDelay 0 not implemented')
-    nInputs = 10;
+    nInputs = 9;
     res.allLaserD = makeDiscreteDelayInd(res.LaserDelayBinned);
 else
     nInputs =2;

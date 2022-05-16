@@ -64,7 +64,7 @@ for RandSeed =0%:10
             
             trialType = 'onlyCorrect_exGrooming_go';
             run('doFit_JointSepCon.m')
-            clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType BconstrainMethod splitDelays
+            clearvars -except CntrlOnly Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType BconstrainMethod splitDelays
 
             close all
             %         trialType = 'onlyCorrect_exGrooming_nogo';
