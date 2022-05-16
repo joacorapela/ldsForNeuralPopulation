@@ -21,11 +21,12 @@ if ~isdir(savedir)
     mkdir(savedir)
 end
 
-splitDelays = 0;
+% splitDelays = 0;
 % if Xval.do ==1 seq will be an Xval struct
 
 [seq,N_V1,N_LM] = buildTrialBasedSeq_JointSepCon(summarymatfile, binSizems,binWinms,splitDelays,perffile,trialType,Xval,CntrlOnly);
 
+savename = [savename,'_splt',num2str(splitDelays)];
 savename = [savename,'_RND',num2str(RandSeed)];
 savename = [savename,'_',trialType];
 
@@ -39,6 +40,7 @@ config.baselineU = baselineU;
 config.trialType = trialType;
 config.RandSeed = RandSeed;
 config.CntrlOnly = CntrlOnly;
+config.BconstrainMethod = BconstrainMethod;
 
 codeRoot = '/mnt/data/Mitra/cache/repos/pop_spike_dyn';
 oldFolder = cd(codeRoot);

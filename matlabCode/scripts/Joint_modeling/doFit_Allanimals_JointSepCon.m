@@ -29,7 +29,8 @@ rootdir  = '/mnt/data/Mitra/figs/';
 resultdir = '/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/';
 
 nStates = 16; % 1:35 for model selection
-%splitDelays = 0; % default 0
+splitDelays = 1; % default 0, if 1: separates input to LM to 8 values
+BconstrainMethod = 'method2'; % method1:old, method2: with A updates
 Inference_handle = @PLDSLaplaceInference;
 binSizems = 17; % default 50ms
 binWinms = nan;% example: [500,1000]; pre-post stimulus window - nan: default [-1000 to 1000], custom windows not implemented yet
@@ -63,7 +64,7 @@ for RandSeed =0%:10
             
             trialType = 'onlyCorrect_exGrooming_go';
             run('doFit_JointSepCon.m')
-            clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType
+            clearvars -except Xval animallist preprocessinglist exptype rootdir resultdir nStates Inference_handle binSizems binWinms skipmsg doSavefig doSaveres baselineU LONO RandSeed animali animalname trialType BconstrainMethod splitDelays
 
             close all
             %         trialType = 'onlyCorrect_exGrooming_nogo';
