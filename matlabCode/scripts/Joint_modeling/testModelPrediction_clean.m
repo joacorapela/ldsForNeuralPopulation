@@ -10,11 +10,11 @@ animallist ={'MPV17','MPV18_2',...
 
 doplot = 0;
 rng(1,'twister');
-CntrlOnly = 1; % 0 or not
+CntrlOnly = 0; % 0 or not
 nboot = 1;
 nfold = 5;
 
-leaveout = 'neuron'; % neuron or area
+leaveout = 'area'; % neuron or area: all V1
 dMethod = 'mean'; % mean or lda
 activity_thresh = nan;% nan or e.g. 0.3750
 
@@ -24,7 +24,7 @@ else
     UInd = 1:9;
 end
 
-for animali  =1%:6
+for animali = 3%:6
     if CntrlOnly
         cd(['/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/',animallist{animali},'/Joint_trial_based_splitContext_CntrlOnly/17msBins/'])
         filelist = dir(['*splt1_RND0_onlyCorrect_exGrooming_go_',num2str(nfold),'FoldXval*.mat']);
@@ -39,29 +39,45 @@ for animali  =1%:6
     NV1Cells = find(sum(res.Xval.params{1}.model.C(:,1:8),2)==0,1)-1%27;% all 37 % make dynamic maybe try animals with more lm cells
     pvcell =[]%36
     
-    dhat = nan(8,NV1Cells);
-    dtrue = nan(8,NV1Cells);
-    dhat_boot = nan(8,NV1Cells,nboot);
-    dtrue_boot = nan(8,NV1Cells,nboot);
-    dhat_chance = nan(8,NV1Cells,nboot);
-    dtrue_chance = nan(8,NV1Cells,nboot);
-    pll_slc_fromAvctrl = nan(8,NV1Cells);
-    pll_slc_fromModelPred = nan(8,NV1Cells);
-    pll_slc_fromDataAv = nan(8,NV1Cells);
-    pll_cntrl_fromModelPred = nan(8,NV1Cells);
-    pll_cntrl_fromDataAv = nan(8,NV1Cells);
+    if strcmp(leaveout, 'area')
+        predictedNeurons = 1:NV1Cells;
+        npneurons = NV1Cells;
+    else
+        predictedNeurons = 1:size(res.Xval.test_seq{fold}(1).y,1);
+        npneurons = size(res.Xval.test_seq{fold}(1).y,1);
+    end
     
+    
+    dhat = nan(8,npneurons);
+    dtrue = nan(8,npneurons);
+    dhat_boot = nan(8,npneurons,nboot);
+    dtrue_boot = nan(8,npneurons,nboot);
+    dhat_chance = nan(8,npneurons,nboot);
+    dtrue_chance = nan(8,npneurons,nboot);
+    pll_slc_fromAvctrl = nan(8,npneurons);
+    pll_slc_fromModelPred = nan(8,npneurons);
+    pll_slc_fromDataAv = nan(8,npneurons);
+    pll_cntrl_fromModelPred = nan(8,npneurons);
+    pll_cntrl_fromDataAv = nan(8,npneurons);
+    pll_cntrl_fromAvctrl = nan(8,npneurons);
     
     for tSilencingLag = 1:8
         Ypred = cell(1,nfold);
         Ypred_slc = cell(1,nfold);
         TrY = cell(1,nfold);
-        TrYcntrl = cell(1,nfold);
+        TrYcntrl = cell(1,nfold);  
         
         
-        
+        % maybe push tSilencinglag inside to reduce 7 extra control
+        % calculation, an save the 4 traces afterwards. Then load for the
+        % next part.
         for fold = 1:nfold
-            [Ypred{fold},Ypred_slc{fold},TrYcntrl{fold},TrY{fold}] = makeYs(res,NV1Cells,pvcell,UInd,fold,tSilencingLag);
+            if strcmp(leaveout, 'area')
+                [Ypred{fold},Ypred_slc{fold},TrYcntrl{fold},TrY{fold}] = makeYs(res,NV1Cells,pvcell,UInd,fold,tSilencingLag);
+            elseif strcmp(leaveout, 'neuron')
+                warning off % warning of sigular matrix in laplaceinferencecore
+                [Ypred{fold},Ypred_slc{fold},TrYcntrl{fold},TrY{fold}] = makeYs_LONO(res,UInd,fold,tSilencingLag);
+            end
         end
         %%% here to the number of folds
         
@@ -76,7 +92,7 @@ for animali  =1%:6
         
         if doplot
             figure;
-            NeuronList =[5 11 12 15 18 19 20 23 24 25];% 34 for animal 6, 22 qnd 24 for animal 3
+            NeuronList =11:40;%[5 11 12 15 18 19 20 23 24 25];% 34 for animal 6, 22 qnd 24 for animal 3
             for NeuronNum = 1:10%1:27
                 % trial averaged
                 subplot(10,1,NeuronNum);
@@ -102,15 +118,19 @@ for animali  =1%:6
         end
         % optional: shorted window
         timewindow = timewindow(1:end);
-            
-        [dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot] = ...
-            makeDs(dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot,nboot,timewindow,NV1Cells,Ypred,Ypred_slc,TrYcntrl,TrY,dMethod,activity_thresh,tSilencingLag);
         
+        if strcmp(leaveout, 'area')
+            [dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot] = ...
+                makeDs(dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot,nboot,timewindow,NV1Cells,Ypred,Ypred_slc,TrYcntrl,TrY,dMethod,activity_thresh,tSilencingLag);
+        end
         % ooption to use a different time window for pll
         timewindow = 55:100;%timewindow(1);%:116; % the whole time window
         
-        for NeuronNum = 1:NV1Cells
-            %%% pll
+
+        
+        %%% pll
+        for NeuronNum = predictedNeurons
+            
             pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = 0; % use a randon control trial to predict it, average pll for all control trials
             pll_slc_fromModelPred(tSilencingLag,NeuronNum) = 0; % same trial prediction
             pll_slc_fromDataAv(tSilencingLag,NeuronNum) = 0; % from average across trials from data (silecing trials)
@@ -122,38 +142,55 @@ for animali  =1%:6
             
             
             for slctr = 1:size(TrY(:,timewindow,NeuronNum),1)
+                elsetr = setdiff(1:size(TrY(:,timewindow,NeuronNum),1),slctr);
                 for timepoint = 1:numel(timewindow)
-                    pll_slc_fromModelPred(tSilencingLag,NeuronNum) = pll_slc_fromModelPred(tSilencingLag,NeuronNum) + ...
-                        TrY(slctr,timewindow(timepoint),NeuronNum)*log(Ypred_slc(slctr,timewindow(timepoint),NeuronNum))-Ypred_slc(slctr,timewindow(timepoint),NeuronNum);
-                    
-                    pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = pll_slc_fromAvctrl(tSilencingLag,NeuronNum) + ...
-                        mean(TrY(slctr,timewindow(timepoint),NeuronNum).*log(Ypred(:,timewindow(timepoint),NeuronNum))-Ypred(:,timewindow(timepoint),NeuronNum));
-                    
-                     pll_slc_fromDataAv(tSilencingLag,NeuronNum) = pll_slc_fromDataAv(tSilencingLag,NeuronNum) + ...
-                        TrY(slctr,timewindow(timepoint),NeuronNum).*log(mean(TrY(:,timewindow(timepoint),NeuronNum),1))-mean(TrY(:,timewindow(timepoint),NeuronNum),1);
+                    if Ypred_slc(slctr,timewindow(timepoint),NeuronNum)>0
+                    pll_slc_fromModelPred(tSilencingLag,NeuronNum) = nansum([pll_slc_fromModelPred(tSilencingLag,NeuronNum) , ...
+                        TrY(slctr,timewindow(timepoint),NeuronNum)*log(Ypred_slc(slctr,timewindow(timepoint),NeuronNum))-Ypred_slc(slctr,timewindow(timepoint),NeuronNum)]);
+                    end
+                    if Ypred(:,timewindow(timepoint),NeuronNum)>0
+                    pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = nansum([pll_slc_fromAvctrl(tSilencingLag,NeuronNum) , ...
+                        mean(TrY(slctr,timewindow(timepoint),NeuronNum).*log(Ypred(:,timewindow(timepoint),NeuronNum))-Ypred(:,timewindow(timepoint),NeuronNum))]);
+                    end
+                    if mean(TrY(elsetr,timewindow(timepoint),NeuronNum),1)>0
+                     pll_slc_fromDataAv(tSilencingLag,NeuronNum) = nansum([pll_slc_fromDataAv(tSilencingLag,NeuronNum) , ...
+                        TrY(slctr,timewindow(timepoint),NeuronNum).*log(mean(TrY(elsetr,timewindow(timepoint),NeuronNum),1))-mean(TrY(elsetr,timewindow(timepoint),NeuronNum),1)]);
+                    end
                 end
             end
             
             % average per number of trials and time points, to make
             % comparable
+            
             pll_slc_fromModelPred(tSilencingLag,NeuronNum) = pll_slc_fromModelPred(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrY(:,timewindow,NeuronNum),1));
             pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = pll_slc_fromAvctrl(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrY(:,timewindow,NeuronNum),1));
             pll_slc_fromDataAv(tSilencingLag,NeuronNum) = pll_slc_fromDataAv(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrY(:,timewindow,NeuronNum),1));
             
             for ctrtr = 1:size(TrYcntrl(:,timewindow,NeuronNum),1)
+                elsetr = setdiff(1:size(TrYcntrl(:,timewindow,NeuronNum),1),ctrtr);
                 for timepoint = 1:numel(timewindow)
-                    pll_cntrl_fromModelPred(tSilencingLag,NeuronNum) = pll_cntrl_fromModelPred(tSilencingLag,NeuronNum) + ...
-                        TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum)*log(Ypred(ctrtr,timewindow(timepoint),NeuronNum))-Ypred(ctrtr,timewindow(timepoint),NeuronNum);
-                    
-                     pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum) = pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum) + ...
-                        mean(TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum).*log(Ypred(:,timewindow(timepoint),NeuronNum))-Ypred(:,timewindow(timepoint),NeuronNum));
-                   
-                    pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) = pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) + ...
-                        TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum).*log(mean(TrYcntrl(:,timewindow(timepoint),NeuronNum),1))-mean(TrYcntrl(:,timewindow(timepoint),NeuronNum),1);
+                    if Ypred(ctrtr,timewindow(timepoint),NeuronNum)>0
+                        pll_cntrl_fromModelPred(tSilencingLag,NeuronNum) = nansum([pll_cntrl_fromModelPred(tSilencingLag,NeuronNum) , ...
+                            TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum)*log(Ypred(ctrtr,timewindow(timepoint),NeuronNum))-Ypred(ctrtr,timewindow(timepoint),NeuronNum)]);
+                    end
+                    if Ypred(elsetr,timewindow(timepoint),NeuronNum)>0
+                        pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum) = nansum([pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum) , ...
+                            mean(TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum).*log(Ypred(elsetr,timewindow(timepoint),NeuronNum))-Ypred(elsetr,timewindow(timepoint),NeuronNum))]);
+                    end
+                    if mean(TrYcntrl(elsetr,timewindow(timepoint),NeuronNum),1)>0
+                        pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) = nansum([pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) , ...
+                            TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum).*log(mean(TrYcntrl(elsetr,timewindow(timepoint),NeuronNum),1))-mean(TrYcntrl(elsetr,timewindow(timepoint),NeuronNum),1)]);
+                    end
+%                     % pca
+%                     if mean(TrYcntrl_red(elsetr,timewindow(timepoint),NeuronNum),1)>0
+%                         pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) = nansum([pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) , ...
+%                             TrYcntrl(ctrtr,timewindow(timepoint),NeuronNum).*log(mean(TrYcntrl_red(elsetr,timewindow(timepoint),NeuronNum),1))-mean(TrYcntrl_red(elsetr,timewindow(timepoint),NeuronNum),1)]);
+%                     end
                 end
             end
             pll_cntrl_fromModelPred(tSilencingLag,NeuronNum) = pll_cntrl_fromModelPred(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrYcntrl(:,timewindow,NeuronNum),1));
             pll_cntrl_fromDataAv(tSilencingLag,NeuronNum) =  pll_cntrl_fromDataAv(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrYcntrl(:,timewindow,NeuronNum),1));
+            pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum) = pll_cntrl_fromAvctrl(tSilencingLag,NeuronNum)/(numel(timewindow)*size(TrYcntrl(:,timewindow,NeuronNum),1));
         end
         
     end
@@ -162,28 +199,50 @@ end
 %% PLLs
 figure;
 s = subplot(2,2,1);
-plot(pll_cntrl_fromModelPred-pll_cntrl_fromAvctrl,'color',[.8 .8 .8]);
+plot(pll_cntrl_fromModelPred(2,:)-pll_cntrl_fromAvctrl(2,:),'color',[.8 .8 .8]);
 hold on;plot(mean(pll_cntrl_fromModelPred-pll_cntrl_fromAvctrl,2),'k');
 s.Title.String = 'control trials from model predicion, vs average-control-trial model prediction';
 
 s = subplot(2,2,3);
-plot(pll_slc_fromModelPred-pll_slc_fromAvctrl,'color',[.8 .8 .8]);
+plot(pll_slc_fromModelPred(2,:)-pll_slc_fromAvctrl(2,:),'color',[.8 .8 .8]);
 hold on;plot(mean(pll_slc_fromModelPred-pll_slc_fromAvctrl,2),'k');
 s.Title.String = 'slc trials from model predicion, vs average-control-trial model prediction';
 
 %%%% How well again data: (probably only positive for lono, not loao and model performnce (not interaction))
 
 s = subplot(2,2,2);
-plot(pll_cntrl_fromModelPred-pll_cntrl_fromDataAv,'color',[.8 .8 .8]);
+plot(pll_cntrl_fromModelPred(2,:)-pll_cntrl_fromDataAv(2,:),'color',[.8 .8 .8]);
 hold on;plot(mean(pll_cntrl_fromModelPred-pll_cntrl_fromDataAv,2),'k');
 s.Title.String = 'control trials from model predicion, vs from trial-average data estimate';
 
 s = subplot(2,2,4);
-plot(pll_slc_fromModelPred-pll_slc_fromDataAv,'color',[.8 .8 .8]);
+plot(pll_slc_fromModelPred(2,:)-pll_slc_fromDataAv(2,:),'color',[.8 .8 .8]);
 hold on;plot(mean(pll_slc_fromModelPred-pll_slc_fromDataAv,2),'k');
 s.Title.String = 'slc trials from model predicion, vs from trial-average data estimate';
+%% PCA scratch
+%X = (squeeze(nanmean(TrY(:,timewindow,:),1)));%timepoints*neurons
+X = reshape(TrY,[],size(TrY,3));%timepointsandtrials*neurons
 
+[coefs,scores,~] = pca(X,'Centered',0);
+% X = scores*coefs'
+coefs_red = [coefs(:,1:16),zeros(size(coefs,1),size(coefs,2)-16)]; % assuming descending order, mean subtraction?
+Xred = scores*coefs_red';
+%figure;imagesc(X);figure;imagesc(Xred)
 
+TrYOut=reshape(Xred,size(TrY,1),size(TrY,2),size(TrY,3));
+figure;imagesc(squeeze(nanmean(TrY(:,:,:),1)));figure;imagesc(squeeze(nanmean(TrYOut(:,:,:),1)))
+
+%%%%%
+X = reshape(TrYcntrl,[],size(TrY,3));%timepointsandtrials*neurons
+
+[coefs,scores,~] = pca(X,'Centered',0);
+% X = scores*coefs'
+coefs_red = [coefs(:,1:16),zeros(size(coefs,1),size(coefs,2)-16)]; % assuming descending order, mean subtraction?
+Xred = scores*coefs_red';
+%figure;imagesc(X);figure;imagesc(Xred)
+
+TrYcntrl_red=reshape(Xred,size(TrYcntrl,1),size(TrYcntrl,2),size(TrYcntrl,3));
+figure;imagesc(squeeze(nanmean(TrYcntrl(:,:,:),1)));figure;imagesc(squeeze(nanmean(TrYcntrl_red(:,:,:),1)))
 %% before normalizing: distribution of norms
 magdist = nan(8,nboot);
 mag = nan(1,8);
