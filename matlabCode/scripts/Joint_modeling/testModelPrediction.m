@@ -17,7 +17,7 @@ else
     UInd = 1:9;
 end
 
-nboot = 1;
+nboot = 100;
 
 dhat = nan(8,27);
 dtrue = nan(8,27);
@@ -40,9 +40,9 @@ for animali  =1%:6
         cd(['/mnt/data/Mitra/cache/repos/ldsForNeuralPopulation/results/',animallist{animali},'/Joint_trial_based_splitContext/17msBins/'])
     end
     
-    
     filelist = dir(['*splt1_onlyCorrect_exGrooming_go_5FoldXval*.mat']);
     res = load(filelist(end).name);
+    
     nfold = 5;
     
     for   tSilencingLag = 1:8
@@ -78,6 +78,7 @@ for animali  =1%:6
                     %  elseif(slcres.seq(tr).u(2,11) - slcres.seq(tr).u(2,10)) > 0 % change to else, if you want all silencing onsets not only lag 2
                     % elseif(res.Xval.test_seq{fold}(tr).u(2,62) - res.Xval.test_seq{fold}(tr).u(2,61)) > 0 % change to else, if you want all silencing onsets not only lag 2
                 elseif sum(sum(res.Xval.test_seq{fold}(tr).u(1+tSilencingLag,:))) > 0
+                    % elseif sum(sum(res.Xval.test_seq{fold}(tr).u(1,timewindow))) > 0
                     %elseif(res.Xval.test_seq{fold}(tr).u(2,85) - res.Xval.test_seq{fold}(tr).u(2,84)) > 0
                     seqLM_slc(end+1).y = res.Xval.test_seq{fold}(tr).y(NV1Cells+1:end,:);
                     seqLM_slc(end).y(pvcell-NV1Cells,:) = [];
@@ -88,6 +89,7 @@ for animali  =1%:6
                     
                     TrNum(end+1) = tr;
                     TrU(tr,:) =  res.Xval.test_seq{fold}(tr).u(1+tSilencingLag,:); %% check this, modified
+                %    TrU(tr,:) =  res.Xval.test_seq{fold}(tr).u(2,:); %% check this, modified
                     TrUv(tr,:) =  res.Xval.test_seq{fold}(tr).u(1,:);
                     TrY{fold}(tr,:,:) =  res.Xval.test_seq{fold}(tr).y(1:NV1Cells,:)';
                 end
@@ -184,14 +186,30 @@ for animali  =1%:6
             legend({'model prediction - control','model prediction - slc', 'tru trace - control','true trace - slc'},'Location','northwest');
         end
         
+       
         timewindow = find(sum(cell2mat(cellfun(@(y) y(tSilencingLag+1,:), arrayfun(@(x) x.u, res.Xval.train_seq{1},'UniformOutput',0),'UniformOutput',0)'),1)>1);
-        
         % optional: shorted window
         timewindow = timewindow(1:end);
        % timewindow = 1:timewindow(1);%:116; % the whole time window
+       
+%        X = [squeeze(nanmean(Ypred(:,timewindow,:),2));squeeze(nanmean(Ypred_slc(:,timewindow,:),2))];
+%        Y = [zeros(size(Ypred,1),1);ones(size(Ypred_slc,1),1)];
+%        mdl = fitcdiscr(X,Y,'discrimType','pseudolinear');
+%        dhat(tSilencingLag,:) = mdl.Coeffs(1,2).Linear;
+%        
+%        X = [squeeze(nanmean(TrYcntrl(:,timewindow,:),2));squeeze(nanmean(TrY(:,timewindow,:),2))];
+%        Y = [zeros(size(TrYcntrl,1),1);ones(size(TrY,1),1)];
+%        mdl = fitcdiscr(X,Y,'discrimType','pseudolinear');
+%        dtrue(tSilencingLag,:) = mdl.Coeffs(1,2).Linear;
+       
         for NeuronNum = 1:NV1Cells
-            dhat(tSilencingLag,NeuronNum) = nanmean(nanmean(Ypred_slc(:,timewindow,(NeuronNum)),2)) - nanmean(nanmean(Ypred(:,timewindow,(NeuronNum)),2));
-            dtrue(tSilencingLag,NeuronNum) = nanmean(nanmean(TrY(:,timewindow,(NeuronNum)),2)) - nanmean(nanmean(TrYcntrl(:,timewindow,(NeuronNum)),2));
+      %      if nanmean(nanmean(TrY(:,timewindow,(NeuronNum)),2))>0.3750
+           dhat(tSilencingLag,NeuronNum) = nanmean(nanmean(Ypred_slc(:,timewindow,(NeuronNum)),2)) - nanmean(nanmean(Ypred(:,timewindow,(NeuronNum)),2));
+           dtrue(tSilencingLag,NeuronNum) = nanmean(nanmean(TrY(:,timewindow,(NeuronNum)),2)) - nanmean(nanmean(TrYcntrl(:,timewindow,(NeuronNum)),2));
+     %       else
+     %            dhat(tSilencingLag,NeuronNum) = 0;
+     %      dtrue(tSilencingLag,NeuronNum) = 0;
+     %       end
             
             
             for b = 1:nboot
@@ -199,9 +217,10 @@ for animali  =1%:6
                
                 slc_trials = datasample(1:numel(nanmean(Ypred_slc(:,timewindow,(NeuronNum)),2)),numel(nanmean(Ypred_slc(:,timewindow,(NeuronNum)),2)));
                 cntrl_trials = datasample(1:numel(nanmean(Ypred(:,timewindow,(NeuronNum)),2)),numel(nanmean(Ypred(:,timewindow,(NeuronNum)),2)));
+                cntrl_trials2 = datasample(1:numel(nanmean(Ypred(:,timewindow,(NeuronNum)),2)),numel(nanmean(Ypred(:,timewindow,(NeuronNum)),2)));
                 
-                dhat_chance(tSilencingLag,NeuronNum,b) = nanmean(nanmean(Ypred(cntrl_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(Ypred(:,timewindow,(NeuronNum)),2));
-                dtrue_chance(tSilencingLag,NeuronNum,b) = nanmean(nanmean(TrYcntrl(cntrl_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(TrYcntrl(:,timewindow,(NeuronNum)),2));
+                dhat_chance(tSilencingLag,NeuronNum,b) = nanmean(nanmean(Ypred(cntrl_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(Ypred(cntrl_trials2,timewindow,(NeuronNum)),2)); % cntrl_trials2 or : for second term
+                dtrue_chance(tSilencingLag,NeuronNum,b) = nanmean(nanmean(TrYcntrl(cntrl_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(TrYcntrl(cntrl_trials2,timewindow,(NeuronNum)),2)); % cntrl_trials2 or : for second term
                 
                 dhat_boot(tSilencingLag,NeuronNum,b) = nanmean(nanmean(Ypred_slc(slc_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(Ypred(cntrl_trials,timewindow,(NeuronNum)),2));                
                 dtrue_boot(tSilencingLag,NeuronNum,b) = nanmean(nanmean(TrY(slc_trials,timewindow,(NeuronNum)),2)) - nanmean(nanmean(TrYcntrl(cntrl_trials,timewindow,(NeuronNum)),2));
@@ -249,8 +268,11 @@ for animali  =1%:6
 
 %                pll_ctrl(tSilencingLag,NeuronNum) = pll_ctrl(tSilencingLag,NeuronNum) + TrY(slctr,timewindow(timepoint),(NeuronNum))*log(mean(Ypred(:,timewindow(timepoint),NeuronNum),1))-mean(Ypred(:,timewindow(timepoint),NeuronNum),1);
 %                pll_slc(tSilencingLag,NeuronNum) = pll_slc(tSilencingLag,NeuronNum) + TrY(slctr,timewindow(timepoint),(NeuronNum))*log(mean(Ypred_slc(:,timewindow(timepoint),NeuronNum),1))-mean(Ypred_slc(:,timewindow(timepoint),NeuronNum));
+
                 pll_ctrl(tSilencingLag,NeuronNum) = pll_ctrl(tSilencingLag,NeuronNum) + ...
-                    mean(TrY(slctr,timewindow(timepoint),(NeuronNum)).*log(Ypred(:,timewindow(timepoint),NeuronNum))-Ypred(:,timewindow(timepoint),NeuronNum));
+                    mean(TrY(slctr,timewindow(timepoint),(NeuronNum)).*log(Ypred(:,timewindow(timepoint),NeuronNum))-Ypred(:,timewindow(timepoint),NeuronNum));                
+%                  pll_ctrl(tSilencingLag,NeuronNum) = pll_ctrl(tSilencingLag,NeuronNum) + ...
+%                     TrY(slctr,timewindow(timepoint),(NeuronNum)).*log(mean(TrY(:,timewindow(timepoint),NeuronNum),1))-mean(TrY(:,timewindow(timepoint),NeuronNum),1);
              end
             end
 %            mse_ctrl(tSilencingLag,NeuronNum) = mse_ctrl(tSilencingLag,NeuronNum)/size(TrY(:,timewindow,(NeuronNum)),1);
@@ -302,21 +324,28 @@ others = [];
 for i = 1:8
     hold on; scatter(i,dtrue(i,:)*dhat(i,:)',100,'k.')
     self(end+1) = dtrue(i,:)*dhat(i,:)';
+    dis = [];
     for j = 1:8
-        if j ~= i
-            hold on; scatter(i,dtrue(i,:)*dhat(j,:)','c.')
+        if j ~= i & abs(j-i)>2
+            hold on; scatter(i+0.1,dtrue(i,:)*dhat(j,:)','c.')
             others(end+1) = dtrue(i,:)*dhat(j,:)';
-            % hold on; scatter(i,dtrue(i,:)*dtrue(j,:)','g.')
+             hold on; scatter(i-0.1,dtrue(i,:)*dtrue(j,:)','g.')
+             for b = 1:nboot
+%                  hold on; scatter(i-0.1,dtrue_boot(i,:,b)*dtrue_boot(j,:,b)','g.')
+                 hold on; scatter(i-0.1,dtrue(i,:)*dtrue_boot(j,:,b)','g.')
+                 dis(end+1) = dtrue_boot(i,:,b)*dtrue_boot(j,:,b)';
+             end
         end
     end
+    zs = (dtrue(i,:)*dhat(i,:)' - mean(dis))/std(dis) 
 end
 xlim([0 9]);
 subplot(1,2,2);scatter(randn(1,numel(self)),self,100,'k.');
 hold on;scatter(10+randn(1,numel(others)),others,100,'c.');
 xlim([-5,15])
 % 1 and 4 don't work, I think needs noise measure
-%figure;imagesc(dhat*dhat')
-%figure;imagesc(dtrue*dtrue')
+figure;imagesc(dhat*dhat')
+figure;imagesc(dtrue*dtrue')
 %% bootstrap
 figure;subplot(1,2,1);
 boot = nan(8,nboot);
