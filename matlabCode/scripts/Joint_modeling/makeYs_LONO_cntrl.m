@@ -10,9 +10,8 @@ try
         others = setdiff(1:Ncells,neuron); % All but the heldout neuron
         
         
-        seqLM = [];
-        % this will be identical for al neurons, only depends on the trials
-        TrNumcntrl = [];
+        seqLM = []; % this is seq from all neurons but neuron, not necessarily LM        
+        TrNumcntrl = []; % this will be identical for al neurons, only depends on the trials
         
         for tr = 1:numel(res.Xval.test_seq{fold})
             if sum(sum(res.Xval.test_seq{fold}(tr).u(2:end,:)))==0
