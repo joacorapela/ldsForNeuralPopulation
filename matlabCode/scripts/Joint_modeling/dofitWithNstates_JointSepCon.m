@@ -25,12 +25,13 @@ fprintf('init params seed: %d\n', config.RandSeed)
 params = [];
 % important: set flag to use external input
 if uDim>0;params.model.notes.useB = true;end
-params.model.notes.maskB = true;
-params.model.notes.maskBmethod = config.BconstrainMethod;
-if config.splitDelays
-    params.model.notes.nMaskDims = 8;
+if ~config.CntrlOnly
+    params.model.notes.maskB = true;
+    params.model.notes.maskBmethod = config.BconstrainMethod;
+    if config.splitDelays
+        params.model.notes.nMaskDims = 8;
+    end
 end
-
 if strcmp(config.initMethod,'n')
     params = PLDSInitialize(seq, xDim, 'NucNormMin', params);
 elseif strcmp(config.initMethod,'r')
