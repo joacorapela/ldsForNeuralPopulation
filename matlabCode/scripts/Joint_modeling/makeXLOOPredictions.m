@@ -24,7 +24,7 @@ else
     UInd = 1:9;
 end
 
-for animali = 1:6
+for animali = 1:6 
     
     disp(['animal = ',num2str(animali)]);
         
@@ -52,6 +52,7 @@ for animali = 1:6
     % next part.
     for fold = 1:nfold
         if strcmp(leaveout, 'area')
+            warning off
             [Ypred{fold},TrYcntrl{fold}] = makeYs_cntrl(res,NV1Cells,pvcell,UInd,fold);
             for tSilencingLag = 1:8
                 [Lag{tSilencingLag}.Ypred_slc{fold},Lag{tSilencingLag}.TrY{fold}] = makeYs_slc(res,NV1Cells,pvcell,UInd,fold,tSilencingLag);
