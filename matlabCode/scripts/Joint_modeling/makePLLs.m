@@ -34,31 +34,40 @@ for NeuronNum = predictedNeurons % 54,3, animal 2
             lambda_fromModelPred = Ypred_slc(slctr,timewindow(timepoint),NeuronNum);
             lambda_fromAvctrl = Ypred(:,timewindow(timepoint),NeuronNum); % this is a vec, not a number, for all trials
             lambda_fromDataAv = mean(TrY(elsetr,timewindow(timepoint),NeuronNum),1);
-            
-            if ~isnan(lambda_fromModelPred) % && lambda_fromModelPred < 1000% skips if lambda = 0, or if there is no prediction (nan) -- are they the same?
-                if lambda_fromModelPred <= 0
-                    keyboard
-                    error('')
-                end
-                pll_slc_fromModelPred(tSilencingLag,NeuronNum) = nansum([pll_slc_fromModelPred(tSilencingLag,NeuronNum) , ...
-                    x*log(lambda_fromModelPred)-lambda_fromModelPred-log(factorial(x))]);
-                N_slc_fromModelPred = N_slc_fromModelPred + 1;
+                   
+            clear cond_phrase
+            if isnan(condi)
+                cond_phrase = 1;
+            elseif condi == 1
+                cond_phrase = lambda_fromDataAv > 0 &&  ~isnan(lambda_fromModelPred) && any(~isnan(lambda_fromAvctrl)); % same condition for multiple plots
             end
-            
-            if any(~isnan(lambda_fromAvctrl)) % if any trial is fine (or shoud be all?)
-                if any(lambda_fromAvctrl<= 0)
-                    keyboard
-                    error('')
+                        
+            if cond_phrase
+                if ~isnan(lambda_fromModelPred) % && lambda_fromModelPred < 1000% skips if lambda = 0, or if there is no prediction (nan) -- are they the same?
+                    if lambda_fromModelPred <= 0
+                        keyboard
+                        error('')
+                    end
+                    pll_slc_fromModelPred(tSilencingLag,NeuronNum) = nansum([pll_slc_fromModelPred(tSilencingLag,NeuronNum) , ...
+                        x*log(lambda_fromModelPred)-lambda_fromModelPred-log(factorial(x))]);
+                    N_slc_fromModelPred = N_slc_fromModelPred + 1;
                 end
-                pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = nansum([pll_slc_fromAvctrl(tSilencingLag,NeuronNum) , ...
-                    nanmean(x.*log(lambda_fromAvctrl)-lambda_fromAvctrl-log(factorial(x)))]);
-                N_slc_fromAvctrl = N_slc_fromAvctrl +1;
-            end
-            
-            if lambda_fromDataAv > 0 % this can't be nan, do we increase n inside or outside? probably outside?
-                pll_slc_fromDataAv(tSilencingLag,NeuronNum) = nansum([pll_slc_fromDataAv(tSilencingLag,NeuronNum) , ...
-                    x.*log(lambda_fromDataAv)-lambda_fromDataAv-log(factorial(x))]);
-                N_slc_fromDataAv = N_slc_fromDataAv +1; % check
+                
+                if any(~isnan(lambda_fromAvctrl)) % if any trial is fine (or shoud be all?)
+                    if any(lambda_fromAvctrl<= 0)
+                        keyboard
+                        error('')
+                    end
+                    pll_slc_fromAvctrl(tSilencingLag,NeuronNum) = nansum([pll_slc_fromAvctrl(tSilencingLag,NeuronNum) , ...
+                        nanmean(x.*log(lambda_fromAvctrl)-lambda_fromAvctrl-log(factorial(x)))]);
+                    N_slc_fromAvctrl = N_slc_fromAvctrl +1;
+                end
+                
+                if lambda_fromDataAv > 0 % this can't be nan, do we increase n inside or outside? probably outside?
+                    pll_slc_fromDataAv(tSilencingLag,NeuronNum) = nansum([pll_slc_fromDataAv(tSilencingLag,NeuronNum) , ...
+                        x.*log(lambda_fromDataAv)-lambda_fromDataAv-log(factorial(x))]);
+                    N_slc_fromDataAv = N_slc_fromDataAv +1; % check
+                end
             end
         end
     end
