@@ -251,16 +251,17 @@ nfold = 5;
 ndims_pca = 16;
 showplot_pca = 0;
 animalIds = [1 3 4 5 6];
-condi = 1; % nan: no condition 1: relevant for both control and slencing trials. uses same condition for both av from dara and from prediction
+condi = 1; % nan: no condition 1: relevant for both control and slencing trials. uses same condition for both av from dara and from prediction -- used in PLL
+calc_pll = 0; % if 0, skips pll calculation, and does only d (to save time)
 
 dMethod = 'mean'; % mean or lda
 activity_thresh = nan;% nan or e.g. 0.3750
 nboot = 100;%100
+calcXd = 1; % 0 or 1, if 1, runs makeDsX instead of makeDs
 
 All_pll_slc_fromAvctrl = cell(1,max(animalIds)); % use a randon control trial to predict it, average pll for all control trials
 All_pll_slc_fromModelPred = cell(1,max(animalIds)); % same trial prediction
 All_pll_slc_fromDataAv = cell(1,max(animalIds)); % from average across trials from data (silecing trials)
-
 All_pll_cntrl_fromAvctrl = cell(1,max(animalIds));
 All_pll_cntrl_fromModelPred = cell(1,max(animalIds)); % same trial prediction
 All_pll_cntrl_fromDataAv = cell(1,max(animalIds)); % from average across trials from data (control trials) -- if 0 returns inf and nan, fix [TODO]
@@ -286,14 +287,13 @@ for animali = animalIds
     end
     mdl = load(filelist(end).name);
     
-    %     predictedNeurons = 1:size(mdl.Xval.test_seq{1}(1).y,1);
-    %     npneurons = size(mdl.Xval.test_seq{1}(1).y,1);
     if strcmp(leaveout,'area')
         NV1Cells = res.NV1Cells;
         predictedNeurons = 1:NV1Cells;
         npneurons = NV1Cells;
     end
     
+    clear dhat dtrue
     pll_slc_fromAvctrl = nan(8,npneurons);
     pll_slc_fromModelPred = nan(8,npneurons);
     pll_slc_fromDataAv = nan(8,npneurons);
@@ -301,14 +301,15 @@ for animali = animalIds
     pll_cntrl_fromDataAv = nan(8,npneurons);
     pll_cntrl_fromAvctrl = nan(8,npneurons);
     pll_cntrl_fromLowdim = nan(8,npneurons);
-    %     dhat = nan(8,npneurons);
-    %     dtrue = nan(8,npneurons);
-    clear dhat dtrue
-    dhat.p1 = nan(8,npneurons,nboot);
-    dtrue.p1 = nan(8,npneurons,nboot);
-    dhat.p2= nan(8,npneurons,nboot);
-    dtrue.p2 = nan(8,npneurons,nboot);
-    
+    if ~calcXd
+        dhat = nan(8,npneurons);
+        dtrue = nan(8,npneurons);
+    else
+        dhat.p1 = nan(8,npneurons,nboot);
+        dtrue.p1 = nan(8,npneurons,nboot);
+        dhat.p2= nan(8,npneurons,nboot);
+        dtrue.p2 = nan(8,npneurons,nboot);
+    end    
     dhat_boot = nan(8,npneurons,nboot);
     dtrue_boot = nan(8,npneurons,nboot);
     dhat_chance = nan(8,npneurons,nboot);
@@ -347,18 +348,25 @@ for animali = animalIds
             end
             timewindow_d = timewindow_d(1:end); % end or end-1
             %%% *** put condition like pll, that the trilas without
-            %%% prediction are also removed from trials
-            [dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot] = ...
-                makeDsX(dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot,nboot,timewindow_d,NV1Cells,Ypred,Ypred_slc,TrYcntrl,TrY,dMethod,activity_thresh,tSilencingLag);
+            %%% prediction are also removed from trials -- there are no
+            %%% trials without prediction in loao animals 1 3 4 5 6
+            if ~ calcXd
+                [dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot] = ...
+                    makeDs(dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot,nboot,timewindow_d,NV1Cells,Ypred,Ypred_slc,TrYcntrl,TrY,dMethod,activity_thresh,tSilencingLag);
+            else
+                [dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot] = ...
+                    makeDsX(dhat,dtrue,dhat_chance,dtrue_chance,dhat_boot,dtrue_boot,nboot,timewindow_d,NV1Cells,Ypred,Ypred_slc,TrYcntrl,TrY,dMethod,activity_thresh,tSilencingLag);               
+            end
         end
         
-                %%% PLLs
-                [pll_slc_fromAvctrl,pll_slc_fromModelPred,pll_slc_fromDataAv,...
-                    pll_cntrl_fromAvctrl,pll_cntrl_fromModelPred,pll_cntrl_fromDataAv,pll_cntrl_fromLowdim] = ...
-                    makePLLs(predictedNeurons,tSilencingLag,timewindow,TrY,TrYcntrl,TrYcntrl_red,Ypred_slc,Ypred,condi,...
-                    pll_slc_fromAvctrl,pll_slc_fromModelPred,pll_slc_fromDataAv,...
-                    pll_cntrl_fromAvctrl,pll_cntrl_fromModelPred,pll_cntrl_fromDataAv,pll_cntrl_fromLowdim);
-        
+        %%% PLLs
+        if calc_pll
+            [pll_slc_fromAvctrl,pll_slc_fromModelPred,pll_slc_fromDataAv,...
+                pll_cntrl_fromAvctrl,pll_cntrl_fromModelPred,pll_cntrl_fromDataAv,pll_cntrl_fromLowdim] = ...
+                makePLLs(predictedNeurons,tSilencingLag,timewindow,TrY,TrYcntrl,TrYcntrl_red,Ypred_slc,Ypred,condi,...
+                pll_slc_fromAvctrl,pll_slc_fromModelPred,pll_slc_fromDataAv,...
+                pll_cntrl_fromAvctrl,pll_cntrl_fromModelPred,pll_cntrl_fromDataAv,pll_cntrl_fromLowdim);
+        end
         
     end
     All_pll_slc_fromAvctrl{animali} =  pll_slc_fromAvctrl;
@@ -416,255 +424,223 @@ if 0
     % hold on;plot(mean(pll_cntrl_fromModelPred-pll_cntrl_fromLowdim,2),'k');
     % s.Title.String = 'control trials from model predicion, vs from low-dim trial-average data estimate';
 else
-    perneuron = cellfun(@(x,y) x - y,All_pll_slc_fromModelPred(animalIds),All_pll_slc_fromAvctrl(animalIds),'UniformOutput',0);
+    if calc_pll
+        perneuron = cellfun(@(x,y) x - y,All_pll_slc_fromModelPred(animalIds),All_pll_slc_fromAvctrl(animalIds),'UniformOutput',0);
+        figure;
+        for i =1:numel(perneuron)
+            % hold on; scatter(i+zeros(size(perneuron{i})),perneuron{i})
+            s = subplot(numel(perneuron),1,i);boxplot(perneuron{i}')
+            for l = 1:8
+                text(l,0.07,num2str(signrank(perneuron{i}(l,:))))
+            end
+            ylim([-0.05,0.08]);
+            hold on;line([0 9], [0 0],'Color','k','LineStyle','--')
+            s.Title.String = 'pll(model) - pll(TrialAvCntrlModdel) - pvals signrank';
+        end
+    end
+end
+
+%% d plots
+if ~calcXd
+    %%% normalize
+    for a = 1:numel(All_dhat)
+        for i = 1:8
+            All_dhat{a}(i,:) = All_dhat{a}(i,:)/norm(All_dhat{a}(i,:));
+            All_dtrue{a}(i,:) = All_dtrue{a}(i,:)/norm(All_dtrue{a}(i,:));
+            for b = 1:nboot
+                All_dhat_boot{a}(i,:,b) = All_dhat_boot{a}(i,:,b)/norm(squeeze(All_dhat_boot{a}(i,:,b)));
+                All_dtrue_boot{a}(i,:,b) = All_dtrue_boot{a}(i,:,b)/norm(squeeze(All_dtrue_boot{a}(i,:,b)));
+                
+                All_dhat_chance{a}(i,:,b) = All_dhat_chance{a}(i,:,b)/norm(squeeze(All_dhat_chance{a}(i,:,b)));
+                All_dtrue_chance{a}(i,:,b) = All_dtrue_chance{a}(i,:,b)/norm(squeeze(All_dtrue_chance{a}(i,:,b)));
+            end
+        end
+    end
+    %%% calculate angles - compare with predictions from other lag
+    
     figure;
-    for i =1:numel(perneuron)
-        % hold on; scatter(i+zeros(size(perneuron{i})),perneuron{i})
-        s = subplot(numel(perneuron),1,i);boxplot(perneuron{i}')
-        for l = 1:8
-            text(l,0.07,num2str(signrank(perneuron{i}(l,:))))
-        end
-        ylim([-0.05,0.08]);
-        hold on;line([0 9], [0 0],'Color','k','LineStyle','--')
-        s.Title.String = 'pll(model) - pll(TrialAvCntrlModdel) - pvals signrank';
-    end
-end
-
-%% before normalizing: distribution of norms
-% magdist = nan(8,nboot);
-% mag = nan(1,8);
-% zs = nan(1,8);
-% for i = 1:8
-%     mag(i)=norm(dhat(i,:));
-%     for b = 1:nboot
-%         magdist(i,b) = norm(squeeze(dhat_chance(i,:,b)));
-%     end
-%     [i,(mag(i) - mean(magdist(i,:)))/std(magdist(i,:))]
-%     zs(i) = (mag(i) - mean(magdist(i,:)))/std(magdist(i,:));
-% end
-% figure;plot(zs)
-% mag = nan(1,8);
-% maghat = nan(1,8);
-% for i = 1:8
-%     mag(i)=norm(dtrue(i,:));
-%     maghat(i)=norm(dhat(i,:));
-%
-% end
-% figure;scatter(mag,maghat)
-%% normalize
-
-for a = 1:numel(All_dhat)
-    for i = 1:8
-        All_dhat{a}(i,:) = All_dhat{a}(i,:)/norm(All_dhat{a}(i,:));
-        All_dtrue{a}(i,:) = All_dtrue{a}(i,:)/norm(All_dtrue{a}(i,:));
-        for b = 1:nboot
-            All_dhat_boot{a}(i,:,b) = All_dhat_boot{a}(i,:,b)/norm(squeeze(All_dhat_boot{a}(i,:,b)));
-            All_dtrue_boot{a}(i,:,b) = All_dtrue_boot{a}(i,:,b)/norm(squeeze(All_dtrue_boot{a}(i,:,b)));
-            
-            All_dhat_chance{a}(i,:,b) = All_dhat_chance{a}(i,:,b)/norm(squeeze(All_dhat_chance{a}(i,:,b)));
-            All_dtrue_chance{a}(i,:,b) = All_dtrue_chance{a}(i,:,b)/norm(squeeze(All_dtrue_chance{a}(i,:,b)));
-        end
-    end
-end
-%% calculate angles - compare with predictions from other lag
-
-figure;
-self = [];others = [];
-for a = 1:numel(All_dhat)
-    subplot(numel(All_dhat),1,a);
-    ch = nan(8,nboot);
-    for i = 1:8
-        self(end+1) = All_dtrue{a}(i,:)*All_dhat{a}(i,:)';
-        hold on; scatter(i,All_dtrue{a}(i,:)*All_dhat{a}(i,:)',100,'k.')
-        for j = 1:8
-            if j ~= i & abs(j-i)>1
-                others(end+1) = All_dtrue{a}(i,:)*All_dhat{a}(j,:)';
-                hold on; scatter(i+0.1,All_dtrue{a}(i,:)*All_dhat{a}(j,:)','r.')
-            end
-        end
-        for b = 1:nboot
-            ch(i,b) = All_dtrue{a}(i,:)*All_dtrue_chance{a}(i,:,b)';
-        end
-    end
-    hold on;line(1:8,prctile(ch',97.5),'Color','k','LineStyle','--');
-    hold on;line(1:8,prctile(ch',2.5),'Color','k','LineStyle','--');
-end
-
-figure; histogram(others,[-1:.3:1],'Normalization','pdf')
-hold on; histogram(self,[-1:.3:1],'Normalization','pdf')
-ranksum(self,others)
-%% calculate angles - compare with data from otherlags
-
-figure;
-for a = 1:numel(All_dhat)
-    subplot(numel(All_dhat),1,a);
-    for i = 1:8
-        hold on; scatter(i,All_dtrue{a}(i,:)*All_dhat{a}(i,:)',100,'k.')
-        for j = 1:8
-            if j ~= i & abs(j-i)>1
-                hold on; scatter(i+0.1,All_dtrue{a}(i,:)*All_dtrue{a}(j,:)','g.')
-            end
-        end
-    end
-    
-end
-%% show angle decay over time
-figure;
-for a = 1:numel(All_dhat)
-    subplot(numel(All_dhat),2,2*a-1);
-    mat = All_dtrue{a}*All_dtrue{a}';
-    for i = 0:7
-        hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'k.')
-    end
-    
-    subplot(numel(All_dhat),2,2*a);
-    mat = All_dhat{a}*All_dhat{a}';
-    for i = 0:7
-        hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'c.')
-    end
-end
-
-%% bootstrap
-% figure;subplot(1,2,1);
-% boot = nan(8,nboot);
-% for i = 1:8
-%     for b = 1:nboot
-%         hold on; scatter(i,dtrue_boot(i,:,b)*dhat_boot(i,:,b)',100,'k.')
-%         %hold on; scatter(i+0.1,dtrue_boot(i,:,b)*dtrue_boot(i,:,b)',100,'c.')
-%         boot(i,b) = dtrue_boot(i,:,b)*dhat_boot(i,:,b)';
-%     end
-%
-% end
-% xlim([0 9]);
-%
-% % 1 and 4 don't work, I think needs noise measure
-% %figure;imagesc(dhat*dhat')
-% %figure;imagesc(dtrue*dtrue')
-%% chance level
-% figure;subplot(1,2,1);
-% ch = nan(8,nboot);
-% for i = 1:8
-%     for b = 1:nboot
-%         ch(i,b) = dtrue(i,:)*dhat_chance(i,:,b)';
-%         hold on; scatter(i,dtrue(i,:)*dhat_chance(i,:,b)',100,'k.')
-%     end
-% end
-% xlim([0 9]);
-% %%%
-% zs = nan(1,8);
-% for i = 1:8
-%     zs(i) = (dtrue(i,:)*dhat(i,:)' -  mean(ch(i,:)))/std(ch(i,:))
-% end
-% figure;plot(zs)
-%% X case
-for a = 1:numel(All_dhat)
-    for i = 1:8
-        for b = 1:nboot
-            All_dhat{a}.p1(i,:,b) = All_dhat{a}.p1(i,:,b)/norm(squeeze(All_dhat{a}.p1(i,:,b)));
-            All_dtrue{a}.p1(i,:,b) = All_dtrue{a}.p1(i,:,b)/norm(squeeze(All_dtrue{a}.p1(i,:,b)));
-            All_dhat{a}.p2(i,:,b) = All_dhat{a}.p2(i,:,b)/norm(squeeze(All_dhat{a}.p2(i,:,b)));
-            All_dtrue{a}.p2(i,:,b) = All_dtrue{a}.p2(i,:,b)/norm(squeeze(All_dtrue{a}.p2(i,:,b)));
-            
-            
-            All_dtrue_chance{a}(i,:,b) = All_dtrue_chance{a}(i,:,b)/norm(squeeze(All_dtrue_chance{a}(i,:,b)));
-            All_dhat_chance{a}(i,:,b) = All_dhat_chance{a}(i,:,b)/norm(squeeze(All_dhat_chance{a}(i,:,b)));
-        end
-    end
-end
-%%
-figure;
-self = [];others = [];chance = [];
-for a = 1:5
-    subplot(5,1,a)
-    Xang_ch = nan(8,nboot);
-    for i =1:8
-        Xang_self = [];
-        for b = 1:nboot
-            Xang_self(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dhat{a}.p2(i,:,b)' + All_dtrue{a}.p2(i,:,b)*All_dhat{a}.p1(i,:,b)')/2;           
-        end
-        hold on; scatter(i,mean(Xang_self),'k.')
-        self(end+1) = mean(Xang_self);
-        
-        for j = 1:8
-            if j ~= i & abs(j-i)>1
-                Xang_cross = [];
-                for b = 1:nboot
-                    Xang_cross(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dhat{a}.p2(j,:,b)' + All_dtrue{a}.p2(i,:,b)*All_dhat{a}.p1(j,:,b)')/2;                   
+    self = [];others = [];
+    for a = 1:numel(All_dhat)
+        subplot(numel(All_dhat),1,a);
+        ch = nan(8,nboot);
+        for i = 1:8
+            self(end+1) = All_dtrue{a}(i,:)*All_dhat{a}(i,:)';
+            hold on; scatter(i,All_dtrue{a}(i,:)*All_dhat{a}(i,:)',100,'k.')
+            for j = 1:8
+                if j ~= i & abs(j-i)>1
+                    others(end+1) = All_dtrue{a}(i,:)*All_dhat{a}(j,:)';
+                    hold on; scatter(i+0.1,All_dtrue{a}(i,:)*All_dhat{a}(j,:)','r.')
                 end
-                hold on; scatter(i+0.1,mean(Xang_cross),'r.')
-                others(end+1) = mean(Xang_cross);
+            end
+            for b = 1:nboot
+                ch(i,b) = All_dtrue{a}(i,:)*All_dtrue_chance{a}(i,:,b)';
+            end
+        end
+        hold on;line(1:8,prctile(ch',97.5),'Color','k','LineStyle','--');
+        hold on;line(1:8,prctile(ch',2.5),'Color','k','LineStyle','--');
+    end
+    
+    figure; histogram(others,[-1:.3:1],'Normalization','pdf')
+    hold on; histogram(self,[-1:.3:1],'Normalization','pdf')
+    ranksum(self,others)
+    %%% calculate angles - compare with data from otherlags
+    
+    figure;
+    for a = 1:numel(All_dhat)
+        subplot(numel(All_dhat),1,a);
+        for i = 1:8
+            hold on; scatter(i,All_dtrue{a}(i,:)*All_dhat{a}(i,:)',100,'k.')
+            for j = 1:8
+                if j ~= i & abs(j-i)>1
+                    hold on; scatter(i+0.1,All_dtrue{a}(i,:)*All_dtrue{a}(j,:)','g.')
+                end
             end
         end
         
-        
-        for b = 1:nboot
-            Xang_ch(i,b) = (All_dtrue{a}.p1(i,:,b)*All_dtrue_chance{a}(i,:,b)' +  All_dtrue{a}.p2(i,:,b)*All_dtrue_chance{a}(i,:,b)')/2;
-                
-            % hold on; scatter(i-0.1,Xang_ch(i,b),'g.')
-                
+    end
+    %%% show angle decay over time
+    figure;
+    for a = 1:numel(All_dhat)
+        subplot(numel(All_dhat),2,2*a-1);
+        mat = All_dtrue{a}*All_dtrue{a}';
+        for i = 0:7
+            hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'k.')
         end
-%         chance(end+1) = mean(Xang_ch(i,:),2);
-        chance = [chance (Xang_ch(i,:))];
         
+        subplot(numel(All_dhat),2,2*a);
+        mat = All_dhat{a}*All_dhat{a}';
+        for i = 0:7
+            hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'c.')
+        end
     end
-%       hold on;line(1:8,prctile(Xang_ch',97.5),'Color','k','LineStyle','--');
-%     hold on;line(1:8,prctile(Xang_ch',2.5),'Color','k','LineStyle','--');
-end
-
-figure; histogram(others,[-1:.25:1],'Normalization','pdf')
-hold on; histogram(self,[-1:.25:1],'Normalization','pdf')
-hold on; histogram(chance,[-1:.025:1],'Normalization','pdf','DisplayStyle','stairs','EdgeColor','k')
-ranksum(self,others)    
-%%
-alltrue =cell(1,8);
-allhat = cell(1,8);
-
-figure;
-for a = 1:numel(All_dhat)
-    subplot(numel(All_dhat),2,2*a-1);
-    mat = [];
-    for b = 1:nboot
-        mat = cat(3,mat,All_dtrue{a}.p1(:,:,b)*All_dtrue{a}.p2(:,:,b)');
+else %%% X case
+    %% Normalize
+    for a = 1:numel(All_dhat)
+        for i = 1:8
+            for b = 1:nboot
+                All_dhat{a}.p1(i,:,b) = All_dhat{a}.p1(i,:,b)/norm(squeeze(All_dhat{a}.p1(i,:,b)));
+                All_dtrue{a}.p1(i,:,b) = All_dtrue{a}.p1(i,:,b)/norm(squeeze(All_dtrue{a}.p1(i,:,b)));
+                All_dhat{a}.p2(i,:,b) = All_dhat{a}.p2(i,:,b)/norm(squeeze(All_dhat{a}.p2(i,:,b)));
+                All_dtrue{a}.p2(i,:,b) = All_dtrue{a}.p2(i,:,b)/norm(squeeze(All_dtrue{a}.p2(i,:,b)));
+                
+                
+                All_dtrue_chance{a}(i,:,b) = All_dtrue_chance{a}(i,:,b)/norm(squeeze(All_dtrue_chance{a}(i,:,b)));
+                All_dhat_chance{a}(i,:,b) = All_dhat_chance{a}(i,:,b)/norm(squeeze(All_dhat_chance{a}(i,:,b)));
+            end
+        end
     end
-    mat = nanmean(mat,3);
-     x=[];
-     g = [];
-    for i = 0:7
-         hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'k.')
-        x = [x;diag(mat,i)];
-        g = [g;i+zeros(size(diag(mat,i)))];
-        alltrue{i+1} =  [alltrue{i+1};diag(mat,i)];
+    %% self vs others vs chance angles
+    %%% 1 - Others consists of lags that are at least minDist lags away from
+    %%% the plotte lag.
+    %%% ** 2 - Chance level: dhat_chance is a vector going from one half of
+    %%% control trials (half of trials) to the other half (half1 assumed to
+    %%% be slc, half 2 cntrl)
+    %%% Important assumptions for chance: 
+    %%% I)the angle is between dtrue and dhat_chance
+    %%% II) similar to the non-chance case, p1 (using half 1 cntrl) is
+    %%% compared to chane (half 2 cntrl) and p2 is compared to -chance
+    %%% (going in opposite direction).
+    %%% that's why averahe is negative, not zero
+    %%% III) the chance angles are averages over partitioning for each lag (similar to
+    %%% other hists) as opposed to distribution across boot (this can be changed by removing mean in line 578)
+    minDist = 1;
+    figure;
+    self = [];others = [];chance = [];
+    for a = 1:numel(All_dhat)
+        subplot(numel(All_dhat),1,a)
+        Xang_ch = nan(8,nboot);
+        for i =1:8
+            Xang_self = [];
+            for b = 1:nboot
+                Xang_self(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dhat{a}.p2(i,:,b)' + All_dtrue{a}.p2(i,:,b)*All_dhat{a}.p1(i,:,b)')/2;
+            end
+            hold on; scatter(i,mean(Xang_self),'k+'); xlim([.5 8.5]);ylim([-1 1]) % average over nboot partitionings is plotted
+            self(end+1) = mean(Xang_self);
+            
+            for j = 1:8
+                Xang_cross = [];
+                if j ~= i & abs(j-i) > minDist  % lags that are at least minDist away                 
+                    for b = 1:nboot
+                        Xang_cross(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dhat{a}.p2(j,:,b)' + All_dtrue{a}.p2(i,:,b)*All_dhat{a}.p1(j,:,b)')/2;
+                    end
+                end
+                hold on; scatter(i,mean(Xang_cross),'r.') % average over nboot partitionings is plotted
+                others(end+1) = mean(Xang_cross);               
+            end
+            
+            Xang_ch = [];
+            for b = 1:nboot
+                % Xang_ch(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dtrue_chance{a}(i,:,b)' +  All_dtrue{a}.p2(i,:,b)*(-All_dtrue_chance{a}(i,:,b))')/2;    
+                Xang_ch(end+1) = (All_dtrue{a}.p1(i,:,b)*All_dhat_chance{a}(i,:,b)' +  All_dtrue{a}.p2(i,:,b)*(-All_dhat_chance{a}(i,:,b))')/2;   
+                % which is the same as : All_dtrue{a}.p1(i,:,b)*All_dhat_chance{a}(i,:,b)';          
+                % hold on; scatter(i-0.1,Xang_ch(end),'g.')                
+            end           
+            chance = [chance mean(Xang_ch)]; % average over nboot partitionings is added             
+        end
     end
-   % hold on;boxplot(x,g)
     
-    subplot(numel(All_dhat),2,2*a);
-    mat = [];
-    for b = 1:nboot
-        mat = cat(3,mat,All_dhat{a}.p1(:,:,b)*All_dhat{a}.p2(:,:,b)');
+    figure; histogram(others,[-1:.25:1],'Normalization','pdf','FaceColor','r','FaceAlpha',0.5,'EdgeAlpha',0);hold on;%line([nanmedian(others),nanmedian(others)],[0 1.5],'Color','r')
+    hold on; histogram(self,[-1:.25:1],'Normalization','pdf','FaceColor','k','FaceAlpha',0.5,'EdgeAlpha',0);hold on;%line([nanmedian(self),nanmedian(self)],[0 1.5],'Color','k')
+%    hold on; histogram(chance,[-1:.05:1],'Normalization','pdf','DisplayStyle','stairs','EdgeColor',[.7 .7 .7])
+    hold on; errorbar(prctile(chance,50),0.1,(prctile(chance,50) - prctile(chance,2.5)),(prctile(chance,97.5)-prctile(chance,50)),'horizontal','Color','k','LineWidth',2)
+    legend({'self',['others at distance ',num2str(minDist)],'chance'})
+    hold on; text(-1,1,['self vs. others ranksum p = ',num2str(ranksum(self,others))])
+    hold on; text(-1,0.9,['self median = ',num2str(nanmedian(self))]) 
+    hold on; text(-1,0.8,['others median = ',num2str(nanmedian(others))]) 
+    
+    %% decay over time true vs model prediction
+    alltrue =cell(1,8);
+    allhat = cell(1,8);
+    
+    figure;
+    for a = 1:numel(All_dhat)
+        subplot(numel(All_dhat),2,2*a-1);
+        mat = [];
+        for b = 1:nboot
+            mat = cat(3,mat,All_dtrue{a}.p1(:,:,b)*All_dtrue{a}.p2(:,:,b)');
+        end
+        mat = nanmean(mat,3);
+        x=[];
+        g = [];
+        for i = 0:7
+            hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'k.')
+            x = [x;diag(mat,i)];
+            g = [g;i+zeros(size(diag(mat,i)))];
+            alltrue{i+1} =  [alltrue{i+1};diag(mat,i)];
+        end
+        xlim([-0.5,8])
+        % hold on;boxplot(x,g)
+        
+        subplot(numel(All_dhat),2,2*a);
+        mat = [];
+        for b = 1:nboot
+            mat = cat(3,mat,All_dhat{a}.p1(:,:,b)*All_dhat{a}.p2(:,:,b)');
+        end
+        mat = nanmean(mat,3);
+        x=[];
+        g = [];
+        for i = 0:7
+            hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'b.')
+            x = [x;diag(mat,i)];
+            g = [g;i+zeros(size(diag(mat,i)))];
+            allhat{i+1} =  [allhat{i+1};diag(mat,i)];
+        end
+        xlim([-0.5,8])
+        %  hold on;boxplot(x,g)
     end
-    mat = nanmean(mat,3);
-      x=[];
-     g = [];
-    for i = 0:7
-          hold on;scatter(i+zeros(size(diag(mat,i))),diag(mat,i),'b.')
-        x = [x;diag(mat,i)];
-        g = [g;i+zeros(size(diag(mat,i)))];
-        allhat{i+1} =  [allhat{i+1};diag(mat,i)];
+    figure
+    for i = 1:8
+        subplot(1,2,1);hold on; scatter(i-1+zeros(numel(alltrue{i}),1),alltrue{i},'k')
+        subplot(1,2,2);hold on; scatter(i-1+zeros(numel(allhat{i}),1),allhat{i},'b')
     end
-  %  hold on;boxplot(x,g)
+    
+    figure
+    for i = 1:8
+        subplot(1,2,1);hold on; scatter(i-1,nanmean(alltrue{i}),'k.');hold on; errorbar(i-1,nanmean(alltrue{i}),2*nanstd(alltrue{i})/sqrt(numel(alltrue{i})),'Color','k')
+        ylim([-0.7,1]);xlim([-0.5,7.5])
+        subplot(1,2,2);hold on; scatter(i-1,nanmean(allhat{i}),'b.');hold on; errorbar(i-1,nanmean(allhat{i}),2*nanstd(allhat{i})/sqrt(numel(allhat{i})),'Color','b')
+        ylim([-0.7,1]);xlim([-0.5,7.5])
+    end
+    subplot(1,2,1);hold on;plot(0:7,cellfun(@(x) nanmean(x),alltrue),'k')
+    subplot(1,2,2);hold on;plot(0:7,cellfun(@(x) nanmean(x),allhat),'b')
 end
-figure
-for i = 1:8
-    subplot(1,2,1);hold on; scatter(i-1+zeros(numel(alltrue{i}),1),alltrue{i},'k')
-    subplot(1,2,2);hold on; scatter(i-1+zeros(numel(allhat{i}),1),allhat{i},'b')
-end
-
-figure
-for i = 1:8
-    subplot(1,2,1);hold on; scatter(i-1,nanmean(alltrue{i}),'k.');hold on; errorbar(i-1,nanmean(alltrue{i}),2*nanstd(alltrue{i})/sqrt(numel(alltrue{i})),'Color','k')
-    ylim([-0.7,1]);xlim([-0.5,7.5])
-    subplot(1,2,2);hold on; scatter(i-1,nanmean(allhat{i}),'b.');hold on; errorbar(i-1,nanmean(allhat{i}),2*nanstd(allhat{i})/sqrt(numel(allhat{i})),'Color','b')
-    ylim([-0.7,1]);xlim([-0.5,7.5])
-end
-subplot(1,2,1);hold on;plot(0:7,cellfun(@(x) nanmean(x),alltrue),'k')
-subplot(1,2,2);hold on;plot(0:7,cellfun(@(x) nanmean(x),allhat),'b')
