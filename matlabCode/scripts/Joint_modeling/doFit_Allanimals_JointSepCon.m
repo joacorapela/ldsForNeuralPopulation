@@ -38,10 +38,10 @@ skipmsg = 1;
 doSavefig = 1;
 doSaveres = 1;
 baselineU = 0; % 0 - option for 1 not implemented
-initMethod = 'n'; % 'r' for random, 'n' for 'NucNormMin'
+initMethod = 'n';% 'r' for random, 'n' for 'NucNormMin'
 % trialType = 'onlyCorrect_exGrooming_go';%'onlyCorrect_exGrooming'; % leave empty if all trials.
 
-Xval.method = 'lag'; % options:'rand': random assignment to nFolds values, 'lag': leave one lagout, nFolds not relevant, only when CntrlOnly == 0  
+Xval.method = 'rand'; % options:'rand': random assignment to nFolds values, 'lag': leave one lagout, nFolds not relevant, only when CntrlOnly == 0  
                      % when 'lag', one silencing time lag + 1/8 of control
                      % trials (randomly selected) are left out at each Fold
                      % as the test set
@@ -51,7 +51,7 @@ Xval.nFolds = 5;
 Xval.Seed = 0;
 Xval.do = 1;
 
-CntrlOnly = 0;
+CntrlOnly = 0; % when 1, init method n has problems with initialization, needs to be changed to 'r'. TODO: check if it is animal 2 problem
 
 if strcmp(initMethod,'r')
     RandSeedRange = 0:10;
@@ -67,7 +67,7 @@ end
 % However, for reversed stimuli (long range influnce), should separate
 % animals (only indirect area)
 for RandSeed = RandSeedRange
-    for animali = 8%:13%length(animallist)
+    for animali = 8:13%length(animallist)
         animalname = animallist{animali};
 %        close all
 %        try

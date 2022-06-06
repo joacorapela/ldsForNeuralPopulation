@@ -141,6 +141,7 @@
 %%% orth necessary? PCA with same bin size? Av or pool? pre subtract or
 %%% not? Train or test per fold? Win or singe bins?
 %%%
+%%% TODO: add average per panel
 % best: 2 - 0
 avOrPool = 2; % 1 av 2 pool
 subPre = 0 ; 
@@ -239,15 +240,15 @@ for animali = animalIds
         %            A = W*A*(W');
         [U,S,V] = svd(Alv);
         [c,s,l] = pca(Av','Centered',doCenter); % zero or one?
-        for i=1:4
+        for i=1:4           
             if acOrSt == 2
                 sv = V(:,i)';
-                subplot(6,4,4*(animali-1)+i);hold on;plot(abs(sv*c))
+                subplot(6,4,4*(animali-1)+i);hold on;plot(abs(sv*c),'color',[.6 .6 .6]);
             elseif acOrSt == 1
                 sv = V(:,i)';
                 projsvLM = (mdl.Xval.params{fold}.model.C(res.NV1Cells+1:end,9:16)*sv'+mdl.Xval.params{fold}.model.d(res.NV1Cells+1:end))';
                 projsvLM = projsvLM/norm(projsvLM);
-                subplot(6,4,4*(animali-1)+i);hold on;plot(abs(projsvLM*c)) 
+                subplot(6,4,4*(animali-1)+i);hold on;plot(abs(projsvLM*c))                 
             end
             
         end
