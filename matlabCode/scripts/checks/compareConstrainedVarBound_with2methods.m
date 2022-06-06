@@ -102,3 +102,15 @@ hold on;plot(squeeze(out_c_m1.params.model.Qdyn),'r')
 hold on;plot(squeeze(out_c_m2.params.model.Qdyn),'c')
 
 legend({'no constraint','constraint m1','constraint m2'})
+%% just one point, after the first m step:
+st = 2;
+figure;
+subplot(1,2,1);scatter(1,out_nc.params.model.Qdyn(:,:,st),'k+')
+hold on;scatter(1,out_c_m1.params.model.Qdyn(:,:,st),'r+')
+hold on;scatter(1,out_c_m2.params.model.Qdyn(:,:,st),'g+')
+legend({'no constraint','constraint m1','constraint m2'})
+
+subplot(1,2,2);scatter(1,out_nc.varBound(st),'k+')
+hold on;scatter(1,out_c_m1.varBound(st),'r+')
+hold on;scatter(1,out_c_m2.varBound(st),'g+')
+legend({'no constraint','constraint m1','constraint m2'})
